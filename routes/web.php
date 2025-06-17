@@ -18,7 +18,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/create', [PropertyController::class, 'create'])->name('properties.create');
         Route::post('/', [PropertyController::class, 'store'])->name('properties.store');
         Route::get('/{property}', [PropertyController::class, 'show'])->name('properties.show');
-        // Route::get('/{property}/edit', [PropertyController::class, 'edit'])->name('properties.edit');
         Route::put('/{property}', [PropertyController::class, 'update'])->name('properties.update');
         Route::delete('/{property}', [PropertyController::class, 'destroy'])->name('properties.destroy');
     });
