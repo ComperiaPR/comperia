@@ -1,0 +1,43 @@
+models:
+  Municipality:
+    id: id
+    name: string:255
+    latitude: string:20
+    longitude: string:20
+    is_active: boolean
+    timestamps: true
+    relationships:
+      hasMany: User
+
+  Plan:
+    id: id
+    name: string:255
+    description: text
+    price: decimal:10,2
+    days: integer:10
+    type_plan: string:20
+    is_active: boolean
+    timestamps: true
+    relationships:
+      hasMany: UserPayment
+
+  PaymentType:
+    id: id
+    name: string:255
+    description: text
+    is_active: boolean
+    timestamps: true
+    relationships:
+      hasMany: UserPayment
+
+  UserPayment:
+    id: id
+    user_id: id foreign:users
+    plan_id: id foreign:plans
+    payment_type_id: id foreign:payment_types
+    ip: string:20
+    date_start: datetime
+    date_finish: datetime
+    timestamps: true
+    relationships:
+      belongsTo: User,Plan,PaymentType
