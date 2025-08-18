@@ -57,7 +57,9 @@ Para obtener una copia local en funcionamiento, siga estos pasos:
 	php artisan storage:link
 	npm run dev
     ```
-
+    ```bash
+    php artisan db:seed --class=RolesAndPermissionsSeeder
+    ```
 7. **Usar app:**
 
     Luego, abra su navegador y navegue a `http://localhost:8083`.

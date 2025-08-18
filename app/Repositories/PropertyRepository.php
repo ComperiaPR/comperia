@@ -37,6 +37,6 @@ class PropertyRepository implements PropertyInterface
 
     public function getProperties(): Collection
     {
-        return Property::where('user_id', Auth::user()->id)->get();
+        return Property::get();
     }
 }

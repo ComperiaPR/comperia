@@ -13,22 +13,22 @@ return new class extends Migration
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
-            $table->string('email', 255)->unique();
-            $table->string('username', 255)->unique();
-            $table->string('document', 12)->nullable();
-            $table->string('first_name', 125);
-            $table->string('last_name', 125);
-            $table->string('company_name', 255)->nullable();
-            $table->text('address_main');
-            $table->text('address_secondary')->nullable();
-            $table->string('zip_code', 10)->nullable();
-            $table->string('password', 255);
+            $table->string('email', 255)->unique()->comment('Email del usuario');
+            $table->string('username', 255)->unique()->comment('Nombre de usuario');
+            $table->string('document', 12)->nullable()->comment('Número de documento');
+            $table->string('first_name', 125)->comment('Nombres');
+            $table->string('last_name', 125)->comment('Apellidos');
+            $table->string('company_name', 255)->nullable()->comment('Nombre de la empresa');
+            $table->text('address_main')->comment('Dirección principal');
+            $table->text('address_secondary')->nullable()->comment('Dirección secundaria');
+            $table->string('zip_code', 10)->nullable()->comment('Código postal');
+            $table->string('password', 255)->comment('Contraseña');
             $table->timestamp('email_verified_at')->nullable();
-            $table->boolean('terms');
-            $table->boolean('is_active');
-            $table->dateTime('date_start')->nullable();
-            $table->dateTime('date_finish')->nullable();
-            $table->foreignId('municipality_id')->constrained();
+            $table->boolean('terms')->default(false)->comment('Acepta los términos');
+            $table->boolean('is_active')->default(true)->comment('Estado del usuario');
+            $table->dateTime('date_start')->nullable()->comment('Fecha de inicio membresia');
+            $table->dateTime('date_finish')->nullable()->comment('Fecha de fin membresia');
+            $table->foreignId('municipality_id')->constrained()->comment('Municipio del usuario');
             $table->rememberToken();
             $table->timestamps();
         });

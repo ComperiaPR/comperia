@@ -13,10 +13,10 @@ return new class extends Migration
     {
         Schema::create('municipalities', function (Blueprint $table) {
             $table->id();
-            $table->string('name', 255);
-            $table->string('latitude', 20);
-            $table->string('longitude', 20);
-            $table->boolean('is_active');
+            $table->string('name', 255)->unique()->comment('Nombre del municipio');
+            $table->string('latitude', 20)->comment('Latitud del municipio');
+            $table->string('longitude', 20)->comment('Longitud del municipio');
+            $table->boolean('is_active')->default(true)->comment('Estado del municipio');
             $table->timestamps();
         });
     }
