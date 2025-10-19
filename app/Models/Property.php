@@ -1,13 +1,102 @@
 <?php
 
+/**
+ * Created by Reliese Model.
+ */
+
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * Class Property
+ * 
+ * @property int $id
+ * @property int|null $daily
+ * @property string|null $page_entry
+ * @property string|null $track_no
+ * @property int $municipality_id
+ * @property int $property_status_id
+ * @property string|null $registry
+ * @property int|null $deed_no
+ * @property Carbon|null $sale_date
+ * @property int $transaction_type_id
+ * @property string|null $notary
+ * @property string|null $seller
+ * @property string|null $resident_seller
+ * @property string|null $buyer
+ * @property string|null $resident_buyer
+ * @property string|null $development
+ * @property string|null $street
+ * @property string|null $unit_number
+ * @property string|null $ward
+ * @property string|null $sector
+ * @property string|null $road_kilometer
+ * @property int|null $zip_code
+ * @property string|null $cadastre
+ * @property int $property_type_id
+ * @property string|null $folio_page
+ * @property string|null $volumen
+ * @property string|null $inscription
+ * @property string|null $source
+ * @property string|null $remarks
+ * @property int $mortgagee_id
+ * @property float|null $mortgagee_amount
+ * @property float|null $interest_rate
+ * @property string|null $latitude
+ * @property string|null $longitude
+ * @property float|null $area_sqr_meter
+ * @property float|null $area_sqr_feet
+ * @property float|null $area_cuerdas
+ * @property float|null $price_sqr_meter
+ * @property float|null $price_sqr_feet
+ * @property float|null $price_cuerdas
+ * @property string|null $gla_sf
+ * @property string|null $gba_sf
+ * @property string|null $zoning
+ * @property string|null $flood_zone
+ * @property string|null $past_current_use
+ * @property int $property_condition_id
+ * @property bool $public_web
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * 
+ * @property Mortgagee $mortgagee
+ * @property Municipality $municipality
+ * @property PropertyCondition $property_condition
+ * @property PropertyStatus $property_status
+ * @property PropertyType $property_type
+ * @property TransactionType $transaction_type
+ *
+ * @package App\Models
+ */
 class Property extends Model
 {
+	protected $table = 'properties';
+
+	protected $casts = [
+		'daily' => 'int',
+		'municipality_id' => 'int',
+		'property_status_id' => 'int',
+		'deed_no' => 'int',
+		'sale_date' => 'datetime',
+		'transaction_type_id' => 'int',
+		'zip_code' => 'int',
+		'property_type_id' => 'int',
+		'mortgagee_id' => 'int',
+		'mortgagee_amount' => 'float',
+		'interest_rate' => 'float',
+		'area_sqr_meter' => 'float',
+		'area_sqr_feet' => 'float',
+		'area_cuerdas' => 'float',
+		'price_sqr_meter' => 'float',
+		'price_sqr_feet' => 'float',
+		'price_cuerdas' => 'float',
+		'property_condition_id' => 'int',
+		'public_web' => 'bool'
+	];
+
 	protected $fillable = [
 		'daily',
 		'page_entry',
@@ -54,63 +143,36 @@ class Property extends Model
 		'flood_zone',
 		'past_current_use',
 		'property_condition_id',
-		'public_web',
+		'public_web'
 	];
 
-	protected $casts = [
-		'daily' => 'integer',
-		'deed_no' => 'integer',
-		'zip_code' => 'integer',
-		'mortgagee_amount' => 'decimal:2',
-		'interest_rate' => 'decimal:2',
-		'area_sqr_meter' => 'decimal:4',
-		'area_sqr_feet' => 'decimal:4',
-		'area_cuerdas' => 'decimal:4',
-		'price_sqr_meter' => 'decimal:4',
-		'price_sqr_feet' => 'decimal:4',
-		'price_cuerdas' => 'decimal:4',
-		'public_web' => 'boolean',
-		'sale_date' => 'datetime',
-	];
-
-	/**
-	 * Scope para propiedades públicas en la web.
-	 */
-	public function scopePublicWeb(Builder $query)
-	{
-		return $query->where('public_web', true);
-	}
-
-	/**
-	 * Relaciones
-	 */
-	public function municipality(): BelongsTo
-	{
-		return $this->belongsTo(Municipality::class);
-	}
-
-	public function propertyStatus(): BelongsTo
-	{
-		return $this->belongsTo(PropertyStatus::class);
-	}
-
-	public function transactionType(): BelongsTo
-	{
-		return $this->belongsTo(TransationType::class);
-	}
-
-	public function propertyType(): BelongsTo
-	{
-		return $this->belongsTo(PropertyType::class);
-	}
-
-	public function mortgagee(): BelongsTo
+	public function mortgagee()
 	{
 		return $this->belongsTo(Mortgagee::class);
 	}
 
-	public function propertyCondition(): BelongsTo
+	public function municipality()
+	{
+		return $this->belongsTo(Municipality::class);
+	}
+
+	public function property_condition()
 	{
 		return $this->belongsTo(PropertyCondition::class);
+	}
+
+	public function property_status()
+	{
+		return $this->belongsTo(PropertyStatus::class);
+	}
+
+	public function property_type()
+	{
+		return $this->belongsTo(PropertyType::class);
+	}
+
+	public function transaction_type()
+	{
+		return $this->belongsTo(TransactionType::class);
 	}
 }

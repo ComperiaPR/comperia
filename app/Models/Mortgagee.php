@@ -1,26 +1,43 @@
 <?php
 
+/**
+ * Created by Reliese Model.
+ */
+
 namespace App\Models;
 
+use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Builder;
 
+/**
+ * Class Mortgagee
+ * 
+ * @property int $id
+ * @property string $name
+ * @property bool $is_active
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * 
+ * @property Collection|Property[] $properties
+ *
+ * @package App\Models
+ */
 class Mortgagee extends Model
 {
-    protected $fillable = [
-        'name',
-        'is_active',
-    ];
+	protected $table = 'mortgagees';
 
-    protected $casts = [
-        'is_active' => 'boolean',
-    ];
+	protected $casts = [
+		'is_active' => 'bool'
+	];
 
-    /**
-     * Scope para obtener solo mortgagees activos.
-     */
-    public function scopeActive(Builder $query)
-    {
-        return $query->where('is_active', true);
-    }
+	protected $fillable = [
+		'name',
+		'is_active'
+	];
+
+	public function properties()
+	{
+		return $this->hasMany(Property::class);
+	}
 }

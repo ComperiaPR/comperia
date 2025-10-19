@@ -1,58 +1,66 @@
 <?php
 
+/**
+ * Created by Reliese Model.
+ */
+
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * Class UserPayment
+ * 
+ * @property int $id
+ * @property int $user_id
+ * @property int $plan_id
+ * @property int $payment_type_id
+ * @property string $ip
+ * @property Carbon $date_start
+ * @property Carbon $date_finish
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * 
+ * @property PaymentType $payment_type
+ * @property Plan $plan
+ * @property User $user
+ *
+ * @package App\Models
+ */
 class UserPayment extends Model
 {
-    use HasFactory;
+	protected $table = 'user_payments';
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array
-     */
-    protected $fillable = [
-        'user_id',
-        'plan_id',
-        'payment_type_id',
-        'ip',
-        'date_start',
-        'date_finish',
-    ];
+	protected $casts = [
+		'user_id' => 'int',
+		'plan_id' => 'int',
+		'payment_type_id' => 'int',
+		'date_start' => 'datetime',
+		'date_finish' => 'datetime'
+	];
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
-    protected function casts(): array
-    {
-        return [
-            'id' => 'integer',
-            'user_id' => 'integer',
-            'plan_id' => 'integer',
-            'payment_type_id' => 'integer',
-            'date_start' => 'datetime',
-            'date_finish' => 'datetime',
-        ];
-    }
+	protected $fillable = [
+		'user_id',
+		'plan_id',
+		'payment_type_id',
+		'ip',
+		'date_start',
+		'date_finish'
+	];
 
-    public function user(): BelongsTo
-    {
-        return $this->belongsTo(User::class);
-    }
+	public function payment_type()
+	{
+		return $this->belongsTo(PaymentType::class);
+	}
 
-    public function plan(): BelongsTo
-    {
-        return $this->belongsTo(Plan::class);
-    }
+	public function plan()
+	{
+		return $this->belongsTo(Plan::class);
+	}
 
-    public function paymentType(): BelongsTo
-    {
-        return $this->belongsTo(PaymentType::class);
-    }
+	public function user()
+	{
+		return $this->belongsTo(User::class);
+	}
 }

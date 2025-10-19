@@ -1,37 +1,43 @@
 <?php
 
+/**
+ * Created by Reliese Model.
+ */
+
 namespace App\Models;
 
+use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * Class PropertyType
+ * 
+ * @property int $id
+ * @property string $name
+ * @property bool $is_active
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * 
+ * @property Collection|Property[] $properties
+ *
+ * @package App\Models
+ */
 class PropertyType extends Model
 {
-    // Tabla por defecto: 'property_types'
+	protected $table = 'property_types';
 
-    protected $fillable = [
-        'name',
-        'is_active',
-    ];
+	protected $casts = [
+		'is_active' => 'bool'
+	];
 
-    protected $casts = [
-        'is_active' => 'boolean',
-    ];
+	protected $fillable = [
+		'name',
+		'is_active'
+	];
 
-    /**
-     * Scope para obtener solo tipos activos.
-     */
-    public function scopeActive(Builder $query)
-    {
-        return $query->where('is_active', true);
-    }
-
-    /**
-     * Relación: un tipo de propiedad puede tener muchas propiedades.
-     */
-    public function properties(): HasMany
-    {
-        return $this->hasMany(Property::class, 'property_type_id');
-    }
+	public function properties()
+	{
+		return $this->hasMany(Property::class);
+	}
 }

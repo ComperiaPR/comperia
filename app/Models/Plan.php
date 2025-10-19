@@ -1,45 +1,53 @@
 <?php
 
+/**
+ * Created by Reliese Model.
+ */
+
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * Class Plan
+ * 
+ * @property int $id
+ * @property string $name
+ * @property string $description
+ * @property float $price
+ * @property int $days
+ * @property string $type_plan
+ * @property bool $is_active
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * 
+ * @property Collection|UserPayment[] $user_payments
+ *
+ * @package App\Models
+ */
 class Plan extends Model
 {
-    use HasFactory;
+	protected $table = 'plans';
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array
-     */
-    protected $fillable = [
-        'name',
-        'description',
-        'price',
-        'days',
-        'type_plan',
-        'is_active',
-    ];
+	protected $casts = [
+		'price' => 'float',
+		'days' => 'int',
+		'is_active' => 'bool'
+	];
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
-    protected function casts(): array
-    {
-        return [
-            'id' => 'integer',
-            'price' => 'decimal:2',
-            'is_active' => 'boolean',
-        ];
-    }
+	protected $fillable = [
+		'name',
+		'description',
+		'price',
+		'days',
+		'type_plan',
+		'is_active'
+	];
 
-    public function userPayments(): HasMany
-    {
-        return $this->hasMany(UserPayment::class);
-    }
+	public function user_payments()
+	{
+		return $this->hasMany(UserPayment::class);
+	}
 }

@@ -2,19 +2,35 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
+/**
+ * Class Municipality
+ *
+ * @property int $id
+ * @property string $name
+ * @property string $latitude
+ * @property string $longitude
+ * @property bool $is_active
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ *
+ * @property Collection|Property[] $properties
+ * @property Collection|User[] $users
+ */
 class Municipality extends Model
 {
     use HasFactory;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array
-     */
+    protected $table = 'municipalities';
+
+    protected $casts = [
+        'is_active' => 'bool',
+    ];
+
     protected $fillable = [
         'name',
         'latitude',
@@ -22,20 +38,12 @@ class Municipality extends Model
         'is_active',
     ];
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
-    protected function casts(): array
+    public function properties()
     {
-        return [
-            'id' => 'integer',
-            'is_active' => 'boolean',
-        ];
+        return $this->hasMany(Property::class);
     }
 
-    public function users(): HasMany
+    public function users()
     {
         return $this->hasMany(User::class);
     }

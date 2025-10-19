@@ -1,41 +1,45 @@
 <?php
 
+/**
+ * Created by Reliese Model.
+ */
+
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * Class PaymentType
+ * 
+ * @property int $id
+ * @property string $name
+ * @property string $description
+ * @property bool $is_active
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * 
+ * @property Collection|UserPayment[] $user_payments
+ *
+ * @package App\Models
+ */
 class PaymentType extends Model
 {
-    use HasFactory;
+	protected $table = 'payment_types';
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array
-     */
-    protected $fillable = [
-        'name',
-        'description',
-        'is_active',
-    ];
+	protected $casts = [
+		'is_active' => 'bool'
+	];
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
-    protected function casts(): array
-    {
-        return [
-            'id' => 'integer',
-            'is_active' => 'boolean',
-        ];
-    }
+	protected $fillable = [
+		'name',
+		'description',
+		'is_active'
+	];
 
-    public function userPayments(): HasMany
-    {
-        return $this->hasMany(UserPayment::class);
-    }
+	public function user_payments()
+	{
+		return $this->hasMany(UserPayment::class);
+	}
 }
