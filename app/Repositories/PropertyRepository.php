@@ -4,32 +4,39 @@ declare(strict_types=1);
 
 namespace App\Repositories;
 
-use App\DTOs\PropertyCreateDTO;
-use App\DTOs\PropertyUpdateDTO;
 use App\Models\Property;
 use App\Repositories\Contracts\PropertyInterface;
+use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Auth;
+// use Illuminate\Support\Facades\Request;
 
 class PropertyRepository implements PropertyInterface
 {
-    public function store(PropertyCreateDTO $propertyCreateDTO): Property
+    public function store(Request $propertyRequest): Property
     {
         return Property::create([
-            'name' => $propertyCreateDTO->name,
-            'address' => $propertyCreateDTO->address,
-            'description' => $propertyCreateDTO->description,
-            'user_id' => Auth::user()->id,
+            'daily' => $propertyRequest->daily,
+            'page_entry' => $propertyRequest->page_entry,
+            'track_no' => $propertyRequest->track_no,
+            'municipality_id' => $propertyRequest->municipality_id,
+            'property_status_id' => $propertyRequest->property_status_id,
+            'registry' => $propertyRequest->registry,
+            'deed_no' => $propertyRequest->deed_no,
+            'sale_date' => $propertyRequest->sale_date,
         ]);
     }
 
-    public function update(Property $property, PropertyUpdateDTO $propertyUpdateDTO): Property
+    public function update(Property $property, Request $propertyRequest): Property
     {
         $property->update([
-            'name' => $propertyUpdateDTO->name,
-            'address' => $propertyUpdateDTO->address,
-            'description' => $propertyUpdateDTO->description,
-            'user_id' => Auth::user()->id,
+            'daily' => $propertyRequest->daily,
+            'page_entry' => $propertyRequest->page_entry,
+            'track_no' => $propertyRequest->track_no,
+            'municipality_id' => $propertyRequest->municipality_id,
+            'property_status_id' => $propertyRequest->property_status_id,
+            'registry' => $propertyRequest->registry,
+            'deed_no' => $propertyRequest->deed_no,
+            'sale_date' => $propertyRequest->sale_date,
         ]);
 
         return $property;

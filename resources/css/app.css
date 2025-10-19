@@ -148,6 +148,12 @@
     --sidebar-ring: oklch(0.439 0 0);
 }
 
+button.data-\[placeholder\]\:text-muted-foreground {
+    &[data-placeholder] {
+        margin-bottom: 0 !important;
+    }
+}
+
 @layer base {
     * {
         @apply border-border;

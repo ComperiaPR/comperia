@@ -9,7 +9,9 @@ use App\DTOs\PropertyUpdateDTO;
 use App\Http\Requests\PropertyStoreRequest;
 use App\Http\Requests\PropertyUpdateRequest;
 use App\Http\Resources\PropertyResource;
+use App\Models\Municipality;
 use App\Models\Property;
+use App\Models\PropertyStatus;
 use App\Services\PropertyService;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
@@ -17,8 +19,12 @@ use Inertia\Response;
 
 class PropertyController extends Controller
 {
-    public function __construct(private PropertyService $propertyService)
-    { }
+    private PropertyService $propertyService;
+
+    public function __construct(PropertyService $propertyService)
+    {
+        $this->propertyService = $propertyService;
+    }
 
     public function index(): Response
     {
@@ -34,8 +40,13 @@ class PropertyController extends Controller
     public function create(): Response
     {
         // Gate::authorize(PermissionsEnum::CreateProperties);
+        $municipalities = Municipality::get();
+        $property_statuses = PropertyStatus::get();
 
-        return Inertia::render('dashboard/properties/create-property');
+        return Inertia::render('dashboard/properties/create-property',[
+            'municipalities' => $municipalities,
+            'property_statuses' => $property_statuses,
+        ]);
     }
 
     public function store(PropertyStoreRequest $request): RedirectResponse
@@ -43,9 +54,7 @@ class PropertyController extends Controller
         // Gate::authorize(PermissionsEnum::CreateProperties);
 
         try {
-            $this->propertyService->store(
-                PropertyCreateDTO::fromArray($request->validated())
-            );
+            $this->propertyService->store($request);
 
             return redirect()->route('properties.index');
         } catch (\Exception $e) {
@@ -69,7 +78,7 @@ class PropertyController extends Controller
         try {
             $this->propertyService->update(
                 $property,
-                PropertyUpdateDTO::fromArray($request->validated())
+                $request
             );
 
             return redirect()->route('properties.index');

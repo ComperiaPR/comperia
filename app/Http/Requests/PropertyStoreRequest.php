@@ -17,22 +17,36 @@ class PropertyStoreRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['required', 'string', 'max:100'],
-            'address' => ['required', 'string', 'max:100'],
-            'description' => ['required'],
+            'daily' => ['required', 'integer'],
+            'page_entry' => ['nullable', 'string'],
+            'track_no' => ['nullable', 'string'],
+            'municipality_id' => ['required','integer'],
+            'property_status_id' => ['required','integer'],
+            'registry' => ['nullable', 'string'],
+            'deed_no' => ['nullable', 'integer'],
+            'sale_date' => ['required', 'date'],
         ];
     }
 
     public function messages(): array
     {
         return [
-            'name.required' => 'El campo nombre de la propiedad es requerido',
-            'name.string' => 'El nombre de la propiedad debe ser una cadena de texto',
-            'name.max' => 'El nombre de la propiedad no puede tener más de 100 caracteres',
-            'address.required' => 'El campo dirección de la propiedad es requerido',
-            'address.string' => 'La dirección de la propiedad debe ser una cadena de texto',
-            'address.max' => 'La dirección de la propiedad no puede tener más de 100 caracteres',
-            'description.required' => 'El campo descripción de la propiedad es requerido',
+            'daily.integer' => 'El campo daily debe ser un número entero',
+            'daily.max' => 'El campo daily no puede tener más de 10 caracteres',
+            'daily.required' => 'El campo daily es obligatorio',
+            'page_entry.string' => 'El campo page entry debe ser una cadena de texto',
+            'page_entry.max' => 'El campo page entry no puede tener más de 100 caracteres',
+            'track_no.string' => 'El campo track debe ser una cadena de texto',
+            'track_no.max' => 'El campo track no no puede tener más de 100 caracteres',
+            'municipality_id.integer' => 'El campo municipio debe ser un número entero',
+            'municipality_id.required' => 'El campo municipio es obligatorio',
+            'property_status_id.integer' => 'El campo estado de propiedad debe ser un número entero',
+            'property_status_id.required' => 'El campo estado de propiedad es obligatorio',
+            'registry.string' => 'El campo registry debe ser una cadena de texto',
+            'deed_no.integer' => 'El campo deed no debe ser un número entero',
+            'deed_no.max' => 'El campo deed no puede tener más de 10 caracteres',
+            'sale_date.required' => 'El campo sale date es obligatorio',
+            'sale_date.date' => 'El campo sale date debe ser una fecha válida',
         ];
     }
 }
