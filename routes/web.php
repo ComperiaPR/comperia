@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\PropertyController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Api\PropertyMapController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -34,3 +35,18 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';
+
+// Map preview page (public)
+Route::get('/map/preview', function () {
+    return Inertia::render('public/map-preview');
+})->name('map.preview');
+
+// Lightweight API endpoints for the map
+Route::prefix('api')->group(function () {
+    Route::get('/properties/in-bounds', [PropertyMapController::class, 'inBounds']);
+    Route::get('/properties/last-update', [PropertyMapController::class, 'lastUpdate']);
+    Route::get('/properties/filters', [PropertyMapController::class, 'filters']);
+    Route::get('/properties/search', [PropertyMapController::class, 'search']);
+    // Protect clearCache behind auth if needed
+    Route::middleware(['auth'])->post('/properties/clear-cache', [PropertyMapController::class, 'clearCache']);
+});

@@ -8,6 +8,8 @@ namespace App\Models;
 
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Cache;
 
 /**
  * Class Property
@@ -145,6 +147,36 @@ class Property extends Model
 		'property_condition_id',
 		'public_web'
 	];
+
+	protected static function booted(): void
+	{
+		// When a property is created/updated/deleted, bump map cache version
+		static::saved(function (Property $property): void {
+			// Only bump when relevant fields affect map visibility
+			if ($property->isDirty(['latitude', 'longitude', 'public_web'])) {
+				Cache::increment('map:version');
+			}
+		});
+
+		static::deleted(function (Property $property): void {
+			Cache::increment('map:version');
+		});
+	}
+
+	// Scopes
+	public function scopePublicWeb(Builder $query): Builder
+	{
+		return $query->where('public_web', true);
+	}
+
+	public function scopeInBounds(Builder $query, float $north, float $south, float $east, float $west): Builder
+	{
+		return $query
+			->whereNotNull('latitude')
+			->whereNotNull('longitude')
+			->whereBetween('latitude', [$south, $north])
+			->whereBetween('longitude', [$west, $east]);
+	}
 
 	public function mortgagee()
 	{

@@ -32,6 +32,11 @@
 
         <title inertia>{{ config('app.name', 'Laravel') }}</title>
 
+        {{-- Expose Google Maps API key for preview page (read-only) --}}
+        @if (config('services.google_maps.api_key'))
+            <meta name="gmaps-key" content="{{ config('services.google_maps.api_key') }}">
+        @endif
+
         <link rel="icon" href="/favicon.ico" sizes="any">
         <link rel="icon" href="/favicon.svg" type="image/svg+xml">
         <link rel="apple-touch-icon" href="/apple-touch-icon.png">
