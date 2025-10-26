@@ -3,7 +3,9 @@
 namespace App\Providers;
 
 use App\Repositories\Contracts\PropertyInterface;
+use App\Repositories\Contracts\PropertyMapInterface;
 use App\Repositories\PropertyRepository;
+use App\Repositories\PropertyMapRepository;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\ServiceProvider;
 
@@ -17,6 +19,11 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(
             PropertyInterface::class,
             PropertyRepository::class,
+        );
+
+        $this->app->bind(
+            PropertyMapInterface::class,
+            PropertyMapRepository::class,
         );
     }
 
