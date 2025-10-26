@@ -9,9 +9,13 @@ use App\DTOs\PropertyUpdateDTO;
 use App\Http\Requests\PropertyStoreRequest;
 use App\Http\Requests\PropertyUpdateRequest;
 use App\Http\Resources\PropertyResource;
+use App\Models\Mortgagee;
 use App\Models\Municipality;
 use App\Models\Property;
+use App\Models\PropertyCondition;
 use App\Models\PropertyStatus;
+use App\Models\PropertyType;
+use App\Models\TransactionType;
 use App\Services\PropertyService;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
@@ -42,10 +46,18 @@ class PropertyController extends Controller
         // Gate::authorize(PermissionsEnum::CreateProperties);
         $municipalities = Municipality::get();
         $property_statuses = PropertyStatus::get();
+        $transaction_types = TransactionType::get();
+        $property_types = PropertyType::get();
+        $mortgagees = Mortgagee::get();
+        $property_conditions = PropertyCondition::get();
 
         return Inertia::render('dashboard/properties/create-property',[
             'municipalities' => $municipalities,
             'property_statuses' => $property_statuses,
+            'transaction_types' => $transaction_types,
+            'property_types' => $property_types,
+            'mortgagees' => $mortgagees,
+            'property_conditions' => $property_conditions,
         ]);
     }
 
@@ -56,7 +68,7 @@ class PropertyController extends Controller
         try {
             $this->propertyService->store($request);
 
-            return redirect()->route('properties.index');
+            return redirect()->route('properties.create',['daily' => $request->daily]);
         } catch (\Exception $e) {
             return back()->withErrors(['error' => $e->getMessage()]);
         }

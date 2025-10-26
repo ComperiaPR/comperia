@@ -20,7 +20,7 @@ return new class extends Migration
             $table->string('track_no', 12)->nullable()->comment('Track No.');
             $table->foreignId('municipality_id')->constrained('municipalities')->comment('Municipio al que pertenece la propiedad');
             $table->foreignId('property_status_id')->constrained('property_statuses')->comment('Estado de la propiedad');
-            $table->string('registry', 12)->nullable()->comment('Registry');
+            $table->string('registry', 180)->nullable()->comment('Registry');
             $table->integer('deed_no')->nullable()->comment('Deed No.');
             $table->dateTime('sale_date')->nullable()->comment('Fecha de venta');
             $table->foreignId('transaction_type_id')->constrained('transaction_types')->comment('Tipo de transacción');
@@ -41,7 +41,7 @@ return new class extends Migration
             $table->char('folio_page', 10)->nullable()->comment('Page (Folio)');
             $table->string('volumen', 20)->nullable()->comment('Volumen');
             $table->string('inscription', 20)->nullable()->comment('Inscription');
-            $table->string('source', 250)->nullable()->comment('Source');
+            $table->text('source')->nullable()->comment('Source');
             $table->text('remarks')->nullable()->comment('Remarks');
             $table->foreignId('mortgagee_id')->constrained('mortgagees')->comment('Mortgagee - Acreedor hipotecario');
             $table->decimal('mortgagee_amount', 16,2)->nullable()->comment('Monto del acreedor hipotecario');
@@ -51,6 +51,7 @@ return new class extends Migration
             $table->decimal('area_sqr_meter', 16,4)->nullable()->comment('Área en metros cuadrados');
             $table->decimal('area_sqr_feet', 16,4)->nullable()->comment('Área en pies cuadrados');
             $table->decimal('area_cuerdas', 16,4)->nullable()->comment('Área en cuerdas');
+            $table->decimal('price', 16,4)->nullable()->comment('Precio de la propiedad');
             $table->decimal('price_sqr_meter', 16,4)->nullable()->comment('Precio por metro cuadrado');
             $table->decimal('price_sqr_feet', 16,4)->nullable()->comment('Precio por pie cuadrado');
             $table->decimal('price_cuerdas', 16,4)->nullable()->comment('Precio por cuerdas');

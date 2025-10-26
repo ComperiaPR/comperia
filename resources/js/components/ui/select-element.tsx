@@ -15,7 +15,7 @@ interface SelectElementProps {
 
 function SelectElement({ data, valueSelected, onChangeEvent, className }: SelectElementProps) {
     return (
-        <Select value={valueSelected} onValueChange={onChangeEvent} required>
+        <Select value={valueSelected} onValueChange={onChangeEvent}>
             <SelectTrigger className={`border-slate-200 bg-white ${className}`}>
                 <SelectValue placeholder="Seleccione" />
             </SelectTrigger>
