@@ -6,6 +6,8 @@ namespace App\Repositories;
 
 use App\Models\Property;
 use App\Repositories\Contracts\PropertyInterface;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Contracts\Pagination\Paginator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 // use Illuminate\Support\Facades\Request;
@@ -119,9 +121,13 @@ class PropertyRepository implements PropertyInterface
 
         return $property;
     }
-
-    public function getProperties(): Collection
+    /**
+     * Undocumented function
+     *
+     * @return LengthAwarePaginator
+     */
+    public function getProperties(): LengthAwarePaginator
     {
-        return Property::get();
+        return Property::with(['municipality', 'property_type', 'property_status', 'transaction_type'])->paginate(10)->onEachSide(0);
     }
 }

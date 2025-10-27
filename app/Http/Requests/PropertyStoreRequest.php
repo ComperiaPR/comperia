@@ -37,7 +37,7 @@ class PropertyStoreRequest extends FormRequest
             'ward' => ['nullable', 'string'],
             'sector' => ['nullable', 'string'],
             'road_kilometer' => ['nullable', 'string'],
-            'zip_code' => ['nullable', 'string'],
+            'zip_code' => ['nullable'],
             'cadastre' => ['nullable', 'string'],
             'property_type_id' => ['required', 'integer'],
             'folio_page' => ['nullable', 'string'],
@@ -64,6 +64,7 @@ class PropertyStoreRequest extends FormRequest
             'flood_zone' => ['nullable', 'string'],
             'past_current_use' => ['nullable', 'string'],
             'property_condition_id' => ['nullable', 'numeric'],
+            'lite' => ['nullable', 'boolean'],
         ];
     }
 
@@ -99,7 +100,7 @@ class PropertyStoreRequest extends FormRequest
             'ward.string' => 'El campo Ward debe ser una cadena de texto',
             'sector.string' => 'El campo Sector debe ser una cadena de texto',
             'road_kilometer.string' => 'El campo Road / Kilometer debe ser una cadena de texto',
-            'zip_code.string' => 'El campo Zip Code debe ser una cadena de texto',
+            // 'zip_code.string' => 'El campo Zip Code debe ser una cadena de texto',
             'cadastre.string' => 'El campo Cadastre debe ser una cadena de texto',
             'property_type_id.integer' => 'El campo Tipo de Propiedad debe ser un número entero',
             'property_type_id.required' => 'El campo Tipo de Propiedad es obligatorio',

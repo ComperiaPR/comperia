@@ -37,8 +37,9 @@ class PropertyController extends Controller
         $properties = $this->propertyService->getProperties();
 
         return Inertia::render('dashboard/properties/list-properties', [
-            'properties' => PropertyResource::collection($properties),
+            'properties' => $properties,
         ]);
+
     }
 
     public function create(): Response
@@ -61,14 +62,36 @@ class PropertyController extends Controller
         ]);
     }
 
+    public function createLite(): Response
+    {
+        // Gate::authorize(PermissionsEnum::CreateProperties);
+        $municipalities = Municipality::get();
+        $property_statuses = PropertyStatus::get();
+        $transaction_types = TransactionType::get();
+        $property_types = PropertyType::get();
+        $mortgagees = Mortgagee::get();
+        $property_conditions = PropertyCondition::get();
+
+        return Inertia::render('dashboard/properties/create-property-lite',[
+            'municipalities' => $municipalities,
+            'property_statuses' => $property_statuses,
+            'transaction_types' => $transaction_types,
+            'property_types' => $property_types,
+            'mortgagees' => $mortgagees,
+            'property_conditions' => $property_conditions,
+        ]);
+    }
+
     public function store(PropertyStoreRequest $request): RedirectResponse
     {
         // Gate::authorize(PermissionsEnum::CreateProperties);
 
         try {
             $this->propertyService->store($request);
-
-            return redirect()->route('properties.create',['daily' => $request->daily]);
+            if($request->lite){
+                return redirect()->route('properties.create-lite');
+            }
+            return redirect()->route('properties.create');
         } catch (\Exception $e) {
             return back()->withErrors(['error' => $e->getMessage()]);
         }
@@ -77,9 +100,21 @@ class PropertyController extends Controller
     public function show(Property $property): Response
     {
         // Gate::authorize(PermissionsEnum::ViewProperties);
+        $municipalities = Municipality::get();
+        $property_statuses = PropertyStatus::get();
+        $transaction_types = TransactionType::get();
+        $property_types = PropertyType::get();
+        $mortgagees = Mortgagee::get();
+        $property_conditions = PropertyCondition::get();
 
         return Inertia::render('dashboard/properties/update-property', [
-            'property' => new PropertyResource($property),
+            'property' => $property,
+            'municipalities' => $municipalities,
+            'property_statuses' => $property_statuses,
+            'transaction_types' => $transaction_types,
+            'property_types' => $property_types,
+            'mortgagees' => $mortgagees,
+            'property_conditions' => $property_conditions,
         ]);
     }
 

@@ -5,7 +5,8 @@ import { ArrowRight, MapPin, TrendingUp, Users } from "lucide-react"
 export function HeroSection() {
   return (
     <section className="relative py-20 lg:py-32 overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-br from-pr-blue/10 via-background to-pr-turquoise/5" />
+      {/* bg-gradient-to-br */}
+      <div className="absolute inset-20 bg-gradient-to-br via-background" />
 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative">
         <div className="max-w-4xl mx-auto text-center">
@@ -23,7 +24,7 @@ export function HeroSection() {
             tomar decisiones informadas en el mercado inmobiliario puertorriqueño.
           </p>
 
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
+          {/* <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
             <Button size="lg" className="text-lg px-8 py-6">
               Comenzar Ahora
               <ArrowRight className="ml-2 h-5 w-5" />
@@ -31,7 +32,7 @@ export function HeroSection() {
             <Button variant="outline" size="lg" className="text-lg px-8 py-6">
               Ver Demo
             </Button>
-          </div>
+          </div> */}
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 max-w-2xl mx-auto">
             <div className="flex flex-col items-center">

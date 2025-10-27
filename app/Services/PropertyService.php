@@ -6,6 +6,8 @@ namespace App\Services;
 
 use App\Models\Property;
 use App\Repositories\Contracts\PropertyInterface;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Contracts\Pagination\Paginator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 // use Illuminate\Support\Facades\Request;
@@ -29,7 +31,7 @@ class PropertyService
         return $this->propertyRepository->update($property, $propertyUpdateDTO);
     }
 
-    public function getProperties(): Collection
+    public function getProperties(): LengthAwarePaginator
     {
         return $this->propertyRepository->getProperties();
     }

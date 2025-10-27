@@ -16,8 +16,10 @@ export function Header() {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           <div className="flex items-center space-x-2">
-            <Home className="h-8 w-8 text-pr-blue" />
-            <span className="text-xl font-bold text-foreground">Comperia</span>
+            <Link href={route('home')} className="flex items-center space-x-2">
+              <Home className="h-8 w-8 text-pr-blue" />
+              <span className="text-xl font-bold text-foreground">Comperia</span>
+            </Link>
           </div>
 
           {/* Desktop Navigation */}
@@ -29,22 +31,22 @@ export function Header() {
               Características
             </Link>
             <Link
-              href="#pricing"
+              href="#about"
               className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
             >
-              Precios
+              About
             </Link>
             <Link
-              href="#testimonials"
+              href="#contact-us"
               className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
             >
-              Testimonios
+              Contact us
             </Link>
-            <Link
-              href="#contact"
+            <Link target='_blank'
+              href="https://comperiapr.com/Archivos/INFORMATION.pdf"
               className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
             >
-              Contacto
+              Informaction
             </Link>
           </nav>
 

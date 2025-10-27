@@ -35,7 +35,7 @@ return new class extends Migration
             $table->string('ward', 100)->nullable()->comment('Barrio');
             $table->string('sector', 100)->nullable()->comment('Sector');
             $table->string('road_kilometer', 255)->nullable()->comment('Road / Kilometer');
-            $table->integer('zip_code')->nullable()->comment('Código Postal');
+            $table->string('zip_code')->nullable()->comment('Código Postal');
             $table->string('cadastre', 150)->nullable()->comment('Catastro');
             $table->foreignId('property_type_id')->constrained('property_types')->comment('Tipo de propiedad');
             $table->char('folio_page', 10)->nullable()->comment('Page (Folio)');

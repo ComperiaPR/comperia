@@ -17,14 +17,14 @@ export default function Welcome() {
                 <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600" rel="stylesheet" />
             </Head>
 
-            <div className="min-h-screen bg-background">
+            <div className="bg-[url('https://comperiapr.com/assets/img/backgrounds/1.jpg')] bg-cover bg-center bg-no-repeat h-screen bg-fixed">
                 <Header />
                 <main>
                     <HeroSection />
                     <FeaturesSection />
                     <StatsSection />
-                    <PricingSection />
-                    <TestimonialsSection />
+                    {/* <PricingSection /> */}
+                    {/* <TestimonialsSection /> */}
                 </main>
                 <Footer />
             </div>

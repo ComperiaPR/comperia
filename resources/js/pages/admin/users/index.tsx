@@ -152,8 +152,8 @@ export default function UsersIndex({ auth, users, roles, batches, filters }: Pag
             
             {/* <LoadingScreen loading={loading} label="Cargando usuarios..." /> */}
 
-            <div className="py-12">
-                <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
+            <div className="py-4 w-full">
+                <div className="max-w-7xl mx-auto sm:px-6 lg:px-4">
                     {/* Componente de filtros */}
                     {/* <UserFilters
                         roles={roles}

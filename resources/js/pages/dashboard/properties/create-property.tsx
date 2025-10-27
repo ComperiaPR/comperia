@@ -53,7 +53,6 @@ const CreateProperty = (masterData: MasterDataProps) => {
     const initialValues = DefaultProperty;
 
     const { data, setData, post, errors, processing } = useForm(initialValues);
-
     // errores de validación del lado del cliente
     const [clientErrors, setClientErrors] = useState<Record<string, string | undefined>>({});
 
@@ -90,21 +89,21 @@ const CreateProperty = (masterData: MasterDataProps) => {
     const setLotAreas = useCallback(
         (field: string) => {
             if (field == 'area_sqr_meter' && data.area_sqr_meter) {
-                let valTempCuerda = parseFloat(data.area_sqr_meter) / InfoArea.defaultCuerdas;
-                setData('area_cuerdas', valTempCuerda.toFixed(4).toString());
-                setData('area_sqr_feet', (valTempCuerda * InfoArea.defaultMeet).toFixed(2).toString());
+                let valTempCuerda = Number(data.area_sqr_meter) / InfoArea.defaultCuerdas;
+                setData('area_cuerdas', Number(valTempCuerda.toFixed(4)));
+                setData('area_sqr_feet', Number((valTempCuerda * InfoArea.defaultMeet).toFixed(2)));
             } else if (field == 'area_cuerdas' && data.area_cuerdas) {
-                let valTempFeet = parseFloat(data.area_cuerdas) * InfoArea.defaultMeet;
-                setData('area_sqr_feet', valTempFeet.toFixed(2).toString());
-                setData('area_sqr_meter', (InfoArea.defaultCuerdas * parseFloat(data.area_cuerdas)).toFixed(2).toString());
+                let valTempFeet = Number(data.area_cuerdas) * InfoArea.defaultMeet;
+                setData('area_sqr_feet', Number(valTempFeet.toFixed(2)));
+                setData('area_sqr_meter', Number((InfoArea.defaultCuerdas * Number(data.area_cuerdas)).toFixed(2)));
             } else if (field == 'area_sqr_feet' && data.area_sqr_feet) {
-                let valTempMeter = parseFloat(data.area_sqr_feet) / InfoArea.defaultFeet;
-                setData('area_sqr_meter', valTempMeter.toFixed(2).toString());
-                setData('area_cuerdas', (valTempMeter / InfoArea.defaultCuerdas).toFixed(4).toString());
+                let valTempMeter = Number(data.area_sqr_feet) / InfoArea.defaultFeet;
+                setData('area_sqr_meter', Number(valTempMeter.toFixed(2)));
+                setData('area_cuerdas', Number((valTempMeter / InfoArea.defaultCuerdas).toFixed(4)));
             } else {
-                setData('area_cuerdas', '0.0000');
-                setData('area_sqr_meter', '0.00');
-                setData('area_sqr_feet', '0.00');
+                setData('area_cuerdas', 0);
+                setData('area_sqr_meter', 0);
+                setData('area_sqr_feet', 0);
             }
         },
         [data, setData],
@@ -112,22 +111,22 @@ const CreateProperty = (masterData: MasterDataProps) => {
 
     const setPrimePer = useCallback(() => {
         if (data.price && data.area_sqr_meter) {
-            const pricePerSquareMeter = parseFloat(data.price) / parseFloat(data.area_sqr_meter);
-            setData('price_sqr_meter', pricePerSquareMeter.toFixed(2).toString());
+            const pricePerSquareMeter = Number(data.price) / Number(data.area_sqr_meter);
+            setData('price_sqr_meter', Number(pricePerSquareMeter.toFixed(2)));
         } else {
-            setData('price_sqr_meter', '0.00');
+            setData('price_sqr_meter', 0);
         }
         if (data.price && data.area_sqr_feet) {
-            const pricePerSquareFeet = parseFloat(data.price) / parseFloat(data.area_sqr_feet);
-            setData('price_sqr_feet', pricePerSquareFeet.toFixed(2).toString());
+            const pricePerSquareFeet = Number(data.price) / Number(data.area_sqr_feet);
+            setData('price_sqr_feet', Number(pricePerSquareFeet.toFixed(2)));
         } else {
-            setData('price_sqr_feet', '0.00');
+            setData('price_sqr_feet', 0);
         }
         if (data.price && data.area_cuerdas) {
-            const pricePerCuerda = parseFloat(data.price) / parseFloat(data.area_cuerdas);
-            setData('price_cuerdas', pricePerCuerda.toFixed(2).toString());
+            const pricePerCuerda = Number(data.price) / Number(data.area_cuerdas);
+            setData('price_cuerdas', Number(pricePerCuerda.toFixed(2)));
         } else {
-            setData('price_cuerdas', '0.00');
+            setData('price_cuerdas', 0);
         }
     }, [data, setData]);
 
@@ -167,6 +166,7 @@ const CreateProperty = (masterData: MasterDataProps) => {
 
     const submit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
+        setData('lite', false);
 
         // validar todos los campos con reglas definidas
         const hasErrors = validateAll();
@@ -199,7 +199,7 @@ const CreateProperty = (masterData: MasterDataProps) => {
         <div className="flex h-full flex-1 flex-col items-center gap-4 rounded-xl p-4">
             <Card className="w-full border-slate-200 bg-slate-100 shadow-sm">
                 <CardHeader className="relative space-y-1.5">
-                    <CardTitle className="text-center text-2xl font-semibold text-primary">Property Registry</CardTitle>
+                    <CardTitle className="text-center text-2xl font-semibold text-primary">Create Property Registry</CardTitle>
                     {/* <CardDescription className="text-center text-slate-600">
                         Complete los campos para registrar una nueva propiedad
                     </CardDescription> */}
@@ -213,21 +213,17 @@ const CreateProperty = (masterData: MasterDataProps) => {
                                 <div className="space-y-2.5">
                                     <Label className="text-sm font-medium text-slate-900">Property Number</Label>
                                     <Input
-                                        value={data.id}
-                                        onChange={(e) => handleChange('id', e.target.value)}
-                                        onBlur={() => validateField('id')}
+                                        value={data.id ?? ''}
                                         placeholder="Property Number"
                                         className="w-full border-slate-200 bg-white"
-                                        type="number"
                                         disabled
                                     />
-                                    <InputError className="mt-1" message={clientErrors.id || errors.id} />
                                 </div>
 
                                 <div className="space-y-2.5">
                                     <Label className="text-sm font-medium text-slate-900">Daily</Label>
                                     <Input
-                                        value={data.daily}
+                                        value={data.daily ?? ''}
                                         onChange={(e) => handleChange('daily', e.target.value)}
                                         onBlur={() => validateField('daily')}
                                         placeholder="Daily"
@@ -240,7 +236,7 @@ const CreateProperty = (masterData: MasterDataProps) => {
                                 <div className="space-y-2.5">
                                     <Label className="text-sm font-medium text-slate-900">Page Entry</Label>
                                     <Input
-                                        value={data.page_entry}
+                                        value={data.page_entry ?? ''}
                                         onChange={(e) => setData('page_entry', e.target.value)}
                                         placeholder="Page Entry"
                                         className="w-full border-slate-200 bg-white"
@@ -251,7 +247,7 @@ const CreateProperty = (masterData: MasterDataProps) => {
                                 <div className="space-y-2.5">
                                     <Label className="text-sm font-medium text-slate-900">Track No.</Label>
                                     <Input
-                                        value={data.track_no}
+                                        value={data.track_no ?? ''}
                                         onChange={(e) => setData('track_no', e.target.value)}
                                         placeholder="Track No."
                                         className="w-full border-slate-200 bg-white"
@@ -268,8 +264,8 @@ const CreateProperty = (masterData: MasterDataProps) => {
                                         data={masterData.municipalities}
                                         valueSelected={data.municipality_id?.toString() ?? ''}
                                         onChangeEvent={useCallback(
-                                            (newValue: string) => {
-                                                setData('municipality_id', newValue);
+                                            (newValue: number | string) => {
+                                                setData('municipality_id', parseInt(newValue.toString()));
                                                 const selectedMunicipality = InfoMunicipalitys.find((m) => m.id === Number(newValue));
                                                 setData('zip_code', selectedMunicipality ? selectedMunicipality.zipcode : '');
                                                 setData('cadastre', selectedMunicipality ? selectedMunicipality.catastro : '');
@@ -290,8 +286,8 @@ const CreateProperty = (masterData: MasterDataProps) => {
                                         data={masterData.property_statuses}
                                         valueSelected={data.property_status_id?.toString() ?? ''}
                                         onChangeEvent={useCallback(
-                                            (newValue: string) => {
-                                                setData('property_status_id', newValue);
+                                            (newValue: number | string) => {
+                                                setData('property_status_id', parseInt(newValue.toString()));
                                             },
                                             [setData],
                                         )}
@@ -303,7 +299,7 @@ const CreateProperty = (masterData: MasterDataProps) => {
                                 <div className="space-y-2.5">
                                     <Label className="text-sm font-medium text-slate-900">Registry</Label>
                                     <Input
-                                        value={data.registry}
+                                        value={data.registry ?? ''}
                                         onChange={(e) => handleChange('registry', e.target.value)}
                                         onBlur={() => validateField('registry')}
                                         placeholder="Registry"
@@ -316,7 +312,7 @@ const CreateProperty = (masterData: MasterDataProps) => {
                                 <div className="space-y-2.5">
                                     <Label className="text-sm font-medium text-slate-900">Deed No.</Label>
                                     <Input
-                                        value={data.deed_no}
+                                        value={data.deed_no ?? ''}
                                         onChange={(e) => handleChange('deed_no', e.target.value)}
                                         onBlur={() => validateField('deed_no')}
                                         placeholder="Deed No."
@@ -330,7 +326,7 @@ const CreateProperty = (masterData: MasterDataProps) => {
                                     <input
                                         type="date"
                                         max={new Date().toISOString().split('T')[0]}
-                                        value={data.sale_date}
+                                        value={data.sale_date ? new Date(data.sale_date).toISOString().split('T')[0] : ''}
                                         onChange={(date) => handleChange('sale_date', date.target.value)}
                                         className="w-full rounded-md border-slate-200 bg-white px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                                     />
@@ -346,8 +342,8 @@ const CreateProperty = (masterData: MasterDataProps) => {
                                         data={masterData.transaction_types}
                                         valueSelected={data.transaction_type_id?.toString() ?? ''}
                                         onChangeEvent={useCallback(
-                                            (newValue: string) => {
-                                                setData('transaction_type_id', newValue);
+                                            (newValue: number | string) => {
+                                                setData('transaction_type_id', parseInt(newValue.toString()));
                                             },
                                             [setData],
                                         )}
@@ -359,7 +355,7 @@ const CreateProperty = (masterData: MasterDataProps) => {
                                 <div className="space-y-2.5">
                                     <Label className="text-sm font-medium text-slate-900">Notary</Label>
                                     <Input
-                                        value={data.notary}
+                                        value={data.notary ?? ''}
                                         onChange={(e) => handleChange('notary', e.target.value)}
                                         onBlur={() => validateField('notary')}
                                         placeholder="Notary"
@@ -371,7 +367,7 @@ const CreateProperty = (masterData: MasterDataProps) => {
                                 <div className="space-y-2.5">
                                     <Label className="text-sm font-medium text-slate-900">Seller</Label>
                                     <Input
-                                        value={data.seller}
+                                        value={data.seller ?? ''}
                                         onChange={(e) => handleChange('seller', e.target.value)}
                                         onBlur={() => validateField('seller')}
                                         placeholder="Seller"
@@ -383,7 +379,7 @@ const CreateProperty = (masterData: MasterDataProps) => {
                                 <div className="space-y-2.5">
                                     <Label className="text-sm font-medium text-slate-900">Resident of Seller</Label>
                                     <Input
-                                        value={data.resident_seller}
+                                        value={data.resident_seller ?? ''}
                                         onChange={(e) => handleChange('resident_seller', e.target.value)}
                                         onBlur={() => validateField('resident_seller')}
                                         placeholder="Resident of Seller"
@@ -395,7 +391,7 @@ const CreateProperty = (masterData: MasterDataProps) => {
                                 <div className="space-y-2.5">
                                     <Label className="text-sm font-medium text-slate-900">Buyer</Label>
                                     <Input
-                                        value={data.buyer}
+                                        value={data.buyer ?? ''}
                                         onChange={(e) => handleChange('buyer', e.target.value)}
                                         onBlur={() => validateField('buyer')}
                                         placeholder="Buyer"
@@ -407,7 +403,7 @@ const CreateProperty = (masterData: MasterDataProps) => {
                                 <div className="space-y-2.5">
                                     <Label className="text-sm font-medium text-slate-900">Resident of Buyer</Label>
                                     <Input
-                                        value={data.resident_buyer}
+                                        value={data.resident_buyer ?? ''}
                                         onChange={(e) => handleChange('resident_buyer', e.target.value)}
                                         onBlur={() => validateField('resident_buyer')}
                                         placeholder="Resident of Buyer"
@@ -419,7 +415,7 @@ const CreateProperty = (masterData: MasterDataProps) => {
                                 <div className="space-y-2.5">
                                     <Label className="text-sm font-medium text-slate-900">Development</Label>
                                     <Input
-                                        value={data.development}
+                                        value={data.development ?? ''}
                                         onChange={(e) => handleChange('development', e.target.value)}
                                         onBlur={() => validateField('development')}
                                         placeholder="Development"
@@ -431,7 +427,7 @@ const CreateProperty = (masterData: MasterDataProps) => {
                                 <div className="space-y-2.5">
                                     <Label className="text-sm font-medium text-slate-900">Street</Label>
                                     <Input
-                                        value={data.street}
+                                        value={data.street ?? ''}
                                         onChange={(e) => handleChange('street', e.target.value)}
                                         onBlur={() => validateField('street')}
                                         placeholder="Street"
@@ -443,7 +439,7 @@ const CreateProperty = (masterData: MasterDataProps) => {
                                 <div className="space-y-2.5">
                                     <Label className="text-sm font-medium text-slate-900">Unit Number</Label>
                                     <Input
-                                        value={data.unit_number}
+                                        value={data.unit_number ?? ''}
                                         onChange={(e) => handleChange('unit_number', e.target.value)}
                                         onBlur={() => validateField('unit_number')}
                                         placeholder="Unit Number"
@@ -455,7 +451,7 @@ const CreateProperty = (masterData: MasterDataProps) => {
                                 <div className="space-y-2.5">
                                     <Label className="text-sm font-medium text-slate-900">Ward</Label>
                                     <Input
-                                        value={data.ward}
+                                        value={data.ward ?? ''}
                                         onChange={(e) => handleChange('ward', e.target.value)}
                                         onBlur={() => validateField('ward')}
                                         placeholder="Ward"
@@ -467,7 +463,7 @@ const CreateProperty = (masterData: MasterDataProps) => {
                                 <div className="space-y-2.5">
                                     <Label className="text-sm font-medium text-slate-900">Sector</Label>
                                     <Input
-                                        value={data.sector}
+                                        value={data.sector ?? ''}
                                         onChange={(e) => handleChange('sector', e.target.value)}
                                         onBlur={() => validateField('sector')}
                                         placeholder="Sector"
@@ -479,7 +475,7 @@ const CreateProperty = (masterData: MasterDataProps) => {
                                 <div className="space-y-2.5">
                                     <Label className="text-sm font-medium text-slate-900">Road / Kilometer</Label>
                                     <Input
-                                        value={data.road_kilometer}
+                                        value={data.road_kilometer ?? ''}
                                         onChange={(e) => handleChange('road_kilometer', e.target.value)}
                                         onBlur={() => validateField('road_kilometer')}
                                         placeholder="Road / Kilometer"
@@ -491,7 +487,7 @@ const CreateProperty = (masterData: MasterDataProps) => {
                                 <div className="space-y-2.5">
                                     <Label className="text-sm font-medium text-slate-900">Zip Code</Label>
                                     <Input
-                                        value={data.zip_code}
+                                        value={data.zip_code ?? ''}
                                         onChange={(e) => handleChange('zip_code', e.target.value)}
                                         onBlur={() => validateField('zip_code')}
                                         placeholder="Zip Code"
@@ -503,7 +499,7 @@ const CreateProperty = (masterData: MasterDataProps) => {
                                 <div className="space-y-2.5">
                                     <Label className="text-sm font-medium text-slate-900">Catastro</Label>
                                     <Input
-                                        value={data.cadastre}
+                                        value={data.cadastre ?? ''}
                                         onChange={(e) => handleChange('cadastre', e.target.value)}
                                         onBlur={() => validateField('cadastre')}
                                         placeholder="Catastro"
@@ -521,8 +517,8 @@ const CreateProperty = (masterData: MasterDataProps) => {
                                         data={masterData.property_types}
                                         valueSelected={data.property_type_id?.toString() ?? ''}
                                         onChangeEvent={useCallback(
-                                            (newValue: string) => {
-                                                setData('property_type_id', newValue);
+                                            (newValue: number | string) => {
+                                                setData('property_type_id', Number(newValue));
                                             },
                                             [setData],
                                         )}
@@ -534,7 +530,7 @@ const CreateProperty = (masterData: MasterDataProps) => {
                                 <div className="space-y-2.5">
                                     <Label className="text-sm font-medium text-slate-900">Page (Folio)</Label>
                                     <Input
-                                        value={data.folio_page}
+                                        value={data.folio_page ?? ''}
                                         onChange={(e) => handleChange('folio_page', e.target.value)}
                                         onBlur={() => validateField('folio_page')}
                                         placeholder="Page (Folio)"
@@ -546,7 +542,7 @@ const CreateProperty = (masterData: MasterDataProps) => {
                                 <div className="space-y-2.5">
                                     <Label className="text-sm font-medium text-slate-900">Volumen</Label>
                                     <Input
-                                        value={data.volumen}
+                                        value={data.volumen ?? ''}
                                         onChange={(e) => handleChange('volumen', e.target.value)}
                                         onBlur={() => validateField('volumen')}
                                         placeholder="Volumen"
@@ -558,7 +554,7 @@ const CreateProperty = (masterData: MasterDataProps) => {
                                 <div className="space-y-2.5">
                                     <Label className="text-sm font-medium text-slate-900">Inscription</Label>
                                     <Input
-                                        value={data.inscription}
+                                        value={data.inscription ?? ''}
                                         onChange={(e) => handleChange('inscription', e.target.value)}
                                         onBlur={() => validateField('inscription')}
                                         placeholder="Inscription"
@@ -570,7 +566,7 @@ const CreateProperty = (masterData: MasterDataProps) => {
                                 <div className="space-y-2.5">
                                     <Label className="text-sm font-medium text-slate-900">Source</Label>
                                     <Textarea
-                                        value={data.source}
+                                        value={data.source ?? ''}
                                         onChange={(e) => handleChange('source', e.target.value)}
                                         onBlur={() => validateField('source')}
                                         placeholder="Source"
@@ -583,7 +579,7 @@ const CreateProperty = (masterData: MasterDataProps) => {
                                 <div className="space-y-2.5">
                                     <Label className="text-sm font-medium text-slate-900">Remarks</Label>
                                     <Textarea
-                                        value={data.remarks}
+                                        value={data.remarks ?? ''}
                                         onChange={(e) => handleChange('remarks', e.target.value)}
                                         onBlur={() => validateField('remarks')}
                                         placeholder="Remarks"
@@ -602,8 +598,8 @@ const CreateProperty = (masterData: MasterDataProps) => {
                                         data={masterData.mortgagees}
                                         valueSelected={data.mortgagee_id?.toString() ?? ''}
                                         onChangeEvent={useCallback(
-                                            (newValue: string) => {
-                                                setData('mortgagee_id', newValue);
+                                            (newValue: number | string) => {
+                                                setData('mortgagee_id', Number(newValue));
                                             },
                                             [setData],
                                         )}
@@ -615,7 +611,7 @@ const CreateProperty = (masterData: MasterDataProps) => {
                                 <div className="space-y-2.5">
                                     <Label className="text-sm font-medium text-slate-900">Mortagagee Amount</Label>
                                     <NumericFormat
-                                        value={data.mortgagee_amount}
+                                        value={data.mortgagee_amount ?? ''}
                                         thousandSeparator=","
                                         decimalSeparator="."
                                         prefix="$ "
@@ -635,7 +631,7 @@ const CreateProperty = (masterData: MasterDataProps) => {
                                 <div className="space-y-2.5">
                                     <Label className="text-sm font-medium text-slate-900">Interest Rate %</Label>
                                     <NumericFormat
-                                        value={data.interest_rate}
+                                        value={data.interest_rate ?? ''}
                                         thousandSeparator=","
                                         decimalSeparator="."
                                         prefix="% "
@@ -666,6 +662,7 @@ const CreateProperty = (masterData: MasterDataProps) => {
                                     </Label>
                                 </div>
                             </div>
+                            {/* [Geolocalization] */}
                             <div className="mx-2.5 my-2.5 grid grid-cols-1 gap-4">
                                 <div className="mx-auto w-full overflow-hidden rounded-md border border-blue-500">
                                     {/* Header */}
@@ -678,7 +675,7 @@ const CreateProperty = (masterData: MasterDataProps) => {
                                             <div className="space-y-2.5">
                                                 <Label className="text-sm font-medium text-slate-900">Latitude</Label>
                                                 <Input
-                                                    value={data.latitude}
+                                                    value={data.latitude ?? ''}
                                                     onChange={(e) => handleChange('latitude', e.target.value)}
                                                     onBlur={() => validateField('latitude')}
                                                     placeholder="Latitude"
@@ -691,7 +688,7 @@ const CreateProperty = (masterData: MasterDataProps) => {
                                             <div className="space-y-2.5">
                                                 <Label className="text-sm font-medium text-slate-900">Longitude</Label>
                                                 <Input
-                                                    value={data.longitude}
+                                                    value={data.longitude ?? ''}
                                                     onChange={(e) => handleChange('longitude', e.target.value)}
                                                     onBlur={() => validateField('longitude')}
                                                     placeholder="Longitude"
@@ -716,7 +713,7 @@ const CreateProperty = (masterData: MasterDataProps) => {
                                             <div className="space-y-2.5">
                                                 <Label className="text-sm font-medium text-slate-900">Sqr. Meter</Label>
                                                 <NumericFormat
-                                                    value={data.area_sqr_meter}
+                                                    value={data.area_sqr_meter ?? ''}
                                                     thousandSeparator=","
                                                     decimalSeparator="."
                                                     prefix=""
@@ -743,7 +740,7 @@ const CreateProperty = (masterData: MasterDataProps) => {
                                             <div className="space-y-2.5">
                                                 <Label className="text-sm font-medium text-slate-900">Sqr. Feet</Label>
                                                 <NumericFormat
-                                                    value={data.area_sqr_feet}
+                                                    value={data.area_sqr_feet ?? ''}
                                                     thousandSeparator=","
                                                     decimalSeparator="."
                                                     prefix=""
@@ -770,7 +767,7 @@ const CreateProperty = (masterData: MasterDataProps) => {
                                             <div className="space-y-2.5">
                                                 <Label className="text-sm font-medium text-slate-900">Cuerdas</Label>
                                                 <NumericFormat
-                                                    value={data.area_cuerdas}
+                                                    value={data.area_cuerdas ?? ''}
                                                     thousandSeparator=","
                                                     decimalSeparator="."
                                                     prefix=""
@@ -801,7 +798,7 @@ const CreateProperty = (masterData: MasterDataProps) => {
                                 <div className="space-y-2.5">
                                     <Label className="text-sm font-medium text-slate-900">Sales Price</Label>
                                     <NumericFormat
-                                        value={data.price}
+                                        value={data.price ?? ''}
                                         thousandSeparator=","
                                         decimalSeparator="."
                                         prefix="$ "
@@ -837,7 +834,7 @@ const CreateProperty = (masterData: MasterDataProps) => {
                                             <div className="space-y-2.5">
                                                 <Label className="text-sm font-medium text-slate-900">Sqr. Meter</Label>
                                                 <NumericFormat
-                                                    value={data.price_sqr_meter}
+                                                    value={data.price_sqr_meter ?? ''}
                                                     thousandSeparator=","
                                                     decimalSeparator="."
                                                     prefix=""
@@ -854,7 +851,7 @@ const CreateProperty = (masterData: MasterDataProps) => {
                                             <div className="space-y-2.5">
                                                 <Label className="text-sm font-medium text-slate-900">Sqr. Feet</Label>
                                                 <NumericFormat
-                                                    value={data.price_sqr_feet}
+                                                    value={data.price_sqr_feet ?? ''}
                                                     thousandSeparator=","
                                                     decimalSeparator="."
                                                     prefix=""
@@ -871,7 +868,7 @@ const CreateProperty = (masterData: MasterDataProps) => {
                                             <div className="space-y-2.5">
                                                 <Label className="text-sm font-medium text-slate-900">Cuerdas</Label>
                                                 <NumericFormat
-                                                    value={data.price_cuerdas}
+                                                    value={data.price_cuerdas ?? ''}
                                                     thousandSeparator=","
                                                     decimalSeparator="."
                                                     prefix=""
@@ -892,7 +889,7 @@ const CreateProperty = (masterData: MasterDataProps) => {
                                 <div className="space-y-2.5">
                                     <Label className="text-sm font-medium text-slate-900">GLA +/- SF</Label>
                                     <Input
-                                        value={data.gla_sf}
+                                        value={data.gla_sf ?? ''}
                                         onChange={(e) => handleChange('gla_sf', e.target.value)}
                                         onBlur={() => validateField('gla_sf')}
                                         placeholder="GLA +/- SF"
@@ -903,7 +900,7 @@ const CreateProperty = (masterData: MasterDataProps) => {
                                 <div className="space-y-2.5">
                                     <Label className="text-sm font-medium text-slate-900">GBA +/- SF</Label>
                                     <Input
-                                        value={data.gba_sf}
+                                        value={data.gba_sf ?? ''}
                                         onChange={(e) => handleChange('gba_sf', e.target.value)}
                                         onBlur={() => validateField('gba_sf')}
                                         placeholder="GBA +/- SF"
@@ -914,7 +911,7 @@ const CreateProperty = (masterData: MasterDataProps) => {
                                 <div className="space-y-2.5">
                                     <Label className="text-sm font-medium text-slate-900">Zoning</Label>
                                     <Input
-                                        value={data.zoning}
+                                        value={data.zoning ?? ''}
                                         onChange={(e) => handleChange('zoning', e.target.value)}
                                         onBlur={() => validateField('zoning')}
                                         placeholder="Zoning"
@@ -925,7 +922,7 @@ const CreateProperty = (masterData: MasterDataProps) => {
                                 <div className="space-y-2.5">
                                     <Label className="text-sm font-medium text-slate-900">Flood Zone</Label>
                                     <Input
-                                        value={data.flood_zone}
+                                        value={data.flood_zone ?? ''}
                                         onChange={(e) => handleChange('flood_zone', e.target.value)}
                                         onBlur={() => validateField('flood_zone')}
                                         placeholder="Flood Zone"
@@ -941,8 +938,8 @@ const CreateProperty = (masterData: MasterDataProps) => {
                                         data={masterData.property_conditions}
                                         valueSelected={data.property_condition_id?.toString() ?? ''}
                                         onChangeEvent={useCallback(
-                                            (newValue: string) => {
-                                                setData('property_condition_id', newValue);
+                                            (newValue: number | string) => {
+                                                setData('property_condition_id', Number(newValue));
                                             },
                                             [setData],
                                         )}
@@ -956,7 +953,7 @@ const CreateProperty = (masterData: MasterDataProps) => {
                                 <div className="space-y-2.5">
                                     <Label className="text-sm font-medium text-slate-900">Property Past Current Use</Label>
                                     <Textarea
-                                        value={data.past_current_use}
+                                        value={data.past_current_use ?? ''}
                                         onChange={(e) => handleChange('past_current_use', e.target.value)}
                                         onBlur={() => validateField('past_current_use')}
                                         placeholder="Past Current Use"

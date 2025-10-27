@@ -18,6 +18,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::prefix('properties')->group(function () {
         Route::get('/', [PropertyController::class, 'index'])->name('properties.index');
         Route::get('/create', [PropertyController::class, 'create'])->name('properties.create');
+        Route::get('/create-lite', [PropertyController::class, 'createLite'])->name('properties.create-lite');
         Route::post('/', [PropertyController::class, 'store'])->name('properties.store');
         Route::get('/{property}', [PropertyController::class, 'show'])->name('properties.show');
         Route::put('/{property}', [PropertyController::class, 'update'])->name('properties.update');

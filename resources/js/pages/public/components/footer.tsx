@@ -29,7 +29,7 @@ export function Footer() {
                   Precios
                 </Link>
               </li>
-              <li>
+              {/* <li>
                 <Link href="#" className="text-muted-foreground hover:text-foreground">
                   API
                 </Link>
@@ -38,7 +38,7 @@ export function Footer() {
                 <Link href="#" className="text-muted-foreground hover:text-foreground">
                   Integraciones
                 </Link>
-              </li>
+              </li> */}
             </ul>
           </div>
 
@@ -50,7 +50,7 @@ export function Footer() {
                   Sobre Nosotros
                 </Link>
               </li>
-              <li>
+              {/* <li>
                 <Link href="#" className="text-muted-foreground hover:text-foreground">
                   Blog
                 </Link>
@@ -64,7 +64,7 @@ export function Footer() {
                 <Link href="#" className="text-muted-foreground hover:text-foreground">
                   Prensa
                 </Link>
-              </li>
+              </li> */}
             </ul>
           </div>
 
@@ -73,7 +73,7 @@ export function Footer() {
             <ul className="space-y-3 text-sm">
               <li className="flex items-center space-x-2">
                 <Mail className="h-4 w-4 text-pr-blue" />
-                <span className="text-muted-foreground">info@comperia.com</span>
+                <span className="text-muted-foreground">comperia@gmail.com</span>
               </li>
               <li className="flex items-center space-x-2">
                 <Phone className="h-4 w-4 text-pr-green" />

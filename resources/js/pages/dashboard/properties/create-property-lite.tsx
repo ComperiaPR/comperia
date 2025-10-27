@@ -1,19 +1,28 @@
-import AppLayout from '@/layouts/app-layout';
-import { Head, useForm } from '@inertiajs/react';
-import { BreadcrumbItem } from '@/types';
 import InputError from '@/components/input-error';
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { toast } from 'sonner';
-import { Textarea } from '@/components/ui/textarea';
-import { Property } from '@/types/property';
-import { Checkbox } from '@/components/ui/checkbox';
-import { NumericFormat } from 'react-number-format';
 import SelectElement from '@/components/ui/select-element';
+import { Textarea } from '@/components/ui/textarea';
+import AppLayout from '@/layouts/app-layout';
+import { BreadcrumbItem } from '@/types';
+import {
+    DefaultProperty,
+    InfoArea,
+    InfoMunicipality,
+    Mortgagee,
+    Municipality,
+    PropertyCondition,
+    PropertyStatus,
+    PropertyType,
+    TransactionType,
+} from '@/types/master-data';
+import { Head, useForm } from '@inertiajs/react';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { InfoArea, InfoMunicipality, Mortgagee, Municipality, PropertyCondition, PropertyStatus, PropertyType, TransactionType } from '@/types/master-data';
+import { NumericFormat } from 'react-number-format';
+import { toast } from 'sonner';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -21,7 +30,7 @@ const breadcrumbs: BreadcrumbItem[] = [
         href: '/properties',
     },
     {
-        title: 'Actualizar propiedad',
+        title: 'Crear propiedad',
         href: '',
     },
 ];
@@ -33,18 +42,21 @@ interface MasterDataProps {
     property_types: PropertyType[];
     mortgagees: Mortgagee[];
     property_conditions: PropertyCondition[];
-    property: Property;
 }
 
 const InfoMunicipalitys = InfoMunicipality;
 
-const UpdateProperty = (masterData: MasterDataProps) => {
-    const property : Property = masterData.property
+const CreateProperty = (masterData: MasterDataProps) => {
+    /**
+     * Inicializar formulario con valores por defecto
+     */
+    const initialValues = DefaultProperty;
 
-    const { data, setData, put, errors, processing } = useForm(property);
+    const { data, setData, post, errors, processing } = useForm(initialValues);
+
     // errores de validación del lado del cliente
     const [clientErrors, setClientErrors] = useState<Record<string, string | undefined>>({});
-    
+
     // validators centralizados
     const validators = useMemo(
         () => ({
@@ -58,15 +70,7 @@ const UpdateProperty = (masterData: MasterDataProps) => {
         }),
         [],
     );
-    // helper genérico para cambios: setData + limpiar error de campo
-    const handleChange = useCallback(
-        (name: string, value: any) => {
-            setData(name as any, value);
-            setClientErrors((prev) => ({ ...prev, [name]: undefined }));
-        },
-        [setData],
-    );
-    
+
     // valida un campo y actualiza clientErrors
     const validateField = useCallback(
         (name: string): string | null => {
@@ -82,7 +86,7 @@ const UpdateProperty = (masterData: MasterDataProps) => {
         },
         [data, validators],
     );
-    
+
     const setLotAreas = useCallback(
         (field: string) => {
             if (field == 'area_sqr_meter' && data.area_sqr_meter) {
@@ -138,6 +142,22 @@ const UpdateProperty = (masterData: MasterDataProps) => {
         return Object.keys(newErrors).length > 0;
     }, [data, validators]);
 
+    // helper genérico para cambios: setData + limpiar error de campo
+    const handleChange = useCallback(
+        (name: string, value: any) => {
+            setData(name as any, value);
+            setClientErrors((prev) => ({ ...prev, [name]: undefined }));
+        },
+        [setData],
+    );
+
+    const isStartDateValid = (date: Date) => {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        if (date > today) return false;
+        return true;
+    };
+
     // sincronizar errores de servidor con los errores cliente (para mostrarlos)
     useEffect(() => {
         if (errors && Object.keys(errors).length) {
@@ -146,14 +166,22 @@ const UpdateProperty = (masterData: MasterDataProps) => {
     }, [errors]);
 
     const submit = (e: React.FormEvent<HTMLFormElement>) => {
+        setData('lite', true);
         e.preventDefault();
 
-        put('/properties/'+property.id, {
+        // validar todos los campos con reglas definidas
+        const hasErrors = validateAll();
+        if (hasErrors) return;
+
+        post('/properties', {
             preserveScroll: true,
             onSuccess: () => {
-                setData(property);
-                toast.success('Propiedad actualizada', {
-                    description: 'Los datos de la propiedad han sido actualizados exitosamente.',
+                let initialTemp = data;
+                setData(initialValues);
+                initialValues.daily = initialTemp.daily;
+                initialValues.municipality_id = initialTemp.municipality_id;
+                toast.success('Propiedad creada', {
+                    description: 'Los datos de la propiedad han sido guardados exitosamente.',
                 });
                 // limpiar errores locales al guardar correctamente
                 setClientErrors({});
@@ -164,15 +192,18 @@ const UpdateProperty = (masterData: MasterDataProps) => {
                         description: errorData.error,
                     });
                 }
-            }
+            },
         });
-    }
+    };
 
     return (
         <div className="flex h-full flex-1 flex-col items-center gap-4 rounded-xl p-4">
             <Card className="w-full border-slate-200 bg-slate-100 shadow-sm">
                 <CardHeader className="relative space-y-1.5">
-                    <CardTitle className="text-center text-2xl font-semibold text-primary">Update Property Registry</CardTitle>
+                    <CardTitle className="text-center text-2xl font-semibold text-primary">Create Property Registry Lite</CardTitle>
+                    {/* <CardDescription className="text-center text-slate-600">
+                        Complete los campos para registrar una nueva propiedad
+                    </CardDescription> */}
                 </CardHeader>
                 <CardContent className="space-y-">
                     <form onSubmit={submit} className="space-y-5">
@@ -184,8 +215,8 @@ const UpdateProperty = (masterData: MasterDataProps) => {
                                     <Label className="text-sm font-medium text-slate-900">Property Number</Label>
                                     <Input
                                         value={data.id ?? ''}
+                                        placeholder="Property Number"
                                         className="w-full border-slate-200 bg-white"
-                                        type="text"
                                         disabled
                                     />
                                 </div>
@@ -229,7 +260,6 @@ const UpdateProperty = (masterData: MasterDataProps) => {
                                     <Label className="text-sm font-medium text-slate-900" htmlFor="state">
                                         Municipality
                                     </Label>
-
                                     <SelectElement
                                         data={masterData.municipalities}
                                         valueSelected={data.municipality_id?.toString() ?? ''}
@@ -251,7 +281,6 @@ const UpdateProperty = (masterData: MasterDataProps) => {
                                     <Label className="text-sm font-medium text-slate-900" htmlFor="state">
                                         Status
                                     </Label>
-
                                     <SelectElement
                                         data={masterData.property_statuses}
                                         valueSelected={data.property_status_id?.toString() ?? ''}
@@ -307,7 +336,6 @@ const UpdateProperty = (masterData: MasterDataProps) => {
                                     <Label className="text-sm font-medium text-slate-900" htmlFor="state">
                                         Type of Transaction
                                     </Label>
-
                                     <SelectElement
                                         data={masterData.transaction_types}
                                         valueSelected={data.transaction_type_id?.toString() ?? ''}
@@ -496,7 +524,7 @@ const UpdateProperty = (masterData: MasterDataProps) => {
                                     />
                                     <InputError className="mt-1" message={errors.property_type_id} />
                                 </div>
-
+                                {/*                                 
                                 <div className="space-y-2.5">
                                     <Label className="text-sm font-medium text-slate-900">Page (Folio)</Label>
                                     <Input
@@ -616,7 +644,8 @@ const UpdateProperty = (masterData: MasterDataProps) => {
                                         className="w-full rounded-md border-gray-300 bg-white px-3 py-1.5"
                                     />
                                     <InputError className="mt-1" message={clientErrors.interest_rate || errors.interest_rate} />
-                                </div>
+                                </div> 
+                                */}
 
                                 <div className="space-y-2.5">
                                     <Checkbox
@@ -632,45 +661,7 @@ const UpdateProperty = (masterData: MasterDataProps) => {
                                     </Label>
                                 </div>
                             </div>
-                            {/* [Geolocalization] */}
-                            <div className="mx-2.5 my-2.5 grid grid-cols-1 gap-4">
-                                <div className="mx-auto w-full overflow-hidden rounded-md border border-blue-500">
-                                    {/* Header */}
-                                    <div className="w-full bg-blue-600 px-4 py-2 font-semibold text-white">[Geolocalization]</div>
 
-                                    {/* Content */}
-                                    <div className="bg-white p-4">
-                                        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-                                            {/* Latitude */}
-                                            <div className="space-y-2.5">
-                                                <Label className="text-sm font-medium text-slate-900">Latitude</Label>
-                                                <Input
-                                                    value={data.latitude ?? ''}
-                                                    onChange={(e) => handleChange('latitude', e.target.value)}
-                                                    onBlur={() => validateField('latitude')}
-                                                    placeholder="Latitude"
-                                                    className="w-full border-slate-200 bg-white"
-                                                />
-                                                <InputError className="mt-1" message={clientErrors.latitude || errors.latitude} />
-                                            </div>
-
-                                            {/* Longitude */}
-                                            <div className="space-y-2.5">
-                                                <Label className="text-sm font-medium text-slate-900">Longitude</Label>
-                                                <Input
-                                                    value={data.longitude ?? ''}
-                                                    onChange={(e) => handleChange('longitude', e.target.value)}
-                                                    onBlur={() => validateField('longitude')}
-                                                    placeholder="Longitude"
-                                                    className="w-full border-slate-200 bg-white"
-                                                />
-                                                <InputError className="mt-1" message={clientErrors.longitude || errors.longitude} />
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            
                             <div className="mx-2.5 my-2.5 grid grid-cols-1 gap-4">
                                 <div className="mx-auto w-full overflow-hidden rounded-md border border-blue-500">
                                     {/* [Lot Area] */}
@@ -854,88 +845,13 @@ const UpdateProperty = (masterData: MasterDataProps) => {
                                     </div>
                                 </div>
                             </div>
-                            {/* Grupo GLA - GBA - Zooning - Flood Zone - Property Condition */}
-                            <div className="mx-2.5 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-                                <div className="space-y-2.5">
-                                    <Label className="text-sm font-medium text-slate-900">GLA +/- SF</Label>
-                                    <Input
-                                        value={data.gla_sf ?? ''}
-                                        onChange={(e) => handleChange('gla_sf', e.target.value)}
-                                        onBlur={() => validateField('gla_sf')}
-                                        placeholder="GLA +/- SF"
-                                        className="w-full border-slate-200 bg-white"
-                                    />
-                                    <InputError className="mt-1" message={clientErrors.gla_sf || errors.gla_sf} />
-                                </div>
-                                <div className="space-y-2.5">
-                                    <Label className="text-sm font-medium text-slate-900">GBA +/- SF</Label>
-                                    <Input
-                                        value={data.gba_sf ?? ''}
-                                        onChange={(e) => handleChange('gba_sf', e.target.value)}
-                                        onBlur={() => validateField('gba_sf')}
-                                        placeholder="GBA +/- SF"
-                                        className="w-full border-slate-200 bg-white"
-                                    />
-                                    <InputError className="mt-1" message={clientErrors.gba_sf || errors.gba_sf} />
-                                </div>
-                                <div className="space-y-2.5">
-                                    <Label className="text-sm font-medium text-slate-900">Zoning</Label>
-                                    <Input
-                                        value={data.zoning ?? ''}
-                                        onChange={(e) => handleChange('zoning', e.target.value)}
-                                        onBlur={() => validateField('zoning')}
-                                        placeholder="Zoning"
-                                        className="w-full border-slate-200 bg-white"
-                                    />
-                                    <InputError className="mt-1" message={clientErrors.zoning || errors.zoning} />
-                                </div>
-                                <div className="space-y-2.5">
-                                    <Label className="text-sm font-medium text-slate-900">Flood Zone</Label>
-                                    <Input
-                                        value={data.flood_zone ?? ''}
-                                        onChange={(e) => handleChange('flood_zone', e.target.value)}
-                                        onBlur={() => validateField('flood_zone')}
-                                        placeholder="Flood Zone"
-                                        className="w-full border-slate-200 bg-white"
-                                    />
-                                    <InputError className="mt-1" message={clientErrors.flood_zone || errors.flood_zone} />
-                                </div>
-                                <div className="space-y-2.5">
-                                    <Label className="text-sm font-medium text-slate-900" htmlFor="state">
-                                        Property Condition
-                                    </Label>
-                                    <SelectElement
-                                        data={masterData.property_conditions}
-                                        valueSelected={data.property_condition_id?.toString() ?? ''}
-                                        onChangeEvent={useCallback(
-                                            (newValue: number | string) => {
-                                                setData('property_condition_id', Number(newValue));
-                                            },
-                                            [setData],
-                                        )}
-                                        className="w-full border-slate-200 bg-white"
-                                    />
-                                    <InputError className="mt-1" message={errors.property_condition_id} />
-                                </div>
-                            </div>
-                            {/* Property Past Current Use */}
-                            <div className="mx-2.5 mb-4 grid grid-cols-1 gap-4 md:grid-cols-1">
-                                <div className="space-y-2.5">
-                                    <Label className="text-sm font-medium text-slate-900">Property Past Current Use</Label>
-                                    <Textarea
-                                        value={data.past_current_use ?? ''}
-                                        onChange={(e) => handleChange('past_current_use', e.target.value)}
-                                        onBlur={() => validateField('past_current_use')}
-                                        placeholder="Past Current Use"
-                                        className="min-h-[38px] w-full border-slate-200 bg-white"
-                                        rows={1}
-                                    />
-                                    <InputError className="mt-1" message={clientErrors.past_current_use || errors.past_current_use} />
-                                </div>
-                            </div>
                         </div>
 
-                        <Button type="submit" disabled={processing} className="w-full bg-primary hover:bg-primary/90 text-white font-medium h-11 cursor-pointer">
+                        <Button
+                            type="submit"
+                            disabled={processing}
+                            className="h-11 w-full cursor-pointer bg-primary font-medium text-white hover:bg-primary/90"
+                        >
                             Guardar
                         </Button>
                     </form>
@@ -943,13 +859,13 @@ const UpdateProperty = (masterData: MasterDataProps) => {
             </Card>
         </div>
     );
-}
+};
 
-UpdateProperty.layout = (page: React.ReactNode) => (
+CreateProperty.layout = (page: React.ReactNode) => (
     <AppLayout breadcrumbs={breadcrumbs}>
-        <Head title="Actualizar propiedad" />
+        <Head title="Crear propiedad" />
         {page}
     </AppLayout>
 );
 
-export default UpdateProperty;
+export default CreateProperty;
