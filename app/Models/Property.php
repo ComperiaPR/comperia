@@ -51,6 +51,7 @@ use Illuminate\Support\Facades\Cache;
  * @property float|null $area_sqr_meter
  * @property float|null $area_sqr_feet
  * @property float|null $area_cuerdas
+ * @property float $price
  * @property float|null $price_sqr_meter
  * @property float|null $price_sqr_feet
  * @property float|null $price_cuerdas
@@ -176,8 +177,10 @@ class Property extends Model
 		return $query
 			->whereNotNull('latitude')
 			->whereNotNull('longitude')
-			->whereBetween('latitude', [$south, $north])
-			->whereBetween('longitude', [$west, $east]);
+			->where('latitude', '!=', '')
+			->where('longitude', '!=', '')
+			->whereRaw('CAST(latitude AS DECIMAL(10,6)) BETWEEN ? AND ?', [$south, $north])
+			->whereRaw('CAST(longitude AS DECIMAL(10,6)) BETWEEN ? AND ?', [$west, $east]);
 	}
 
 	public function mortgagee()

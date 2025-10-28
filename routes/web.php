@@ -45,6 +45,7 @@ Route::get('/map/preview', function () {
 // Lightweight API endpoints for the map
 Route::prefix('api')->group(function () {
     Route::get('/properties/in-bounds', [PropertyMapController::class, 'inBounds']);
+    Route::get('/properties/all-locations', [PropertyMapController::class, 'allLocations']);
     Route::get('/properties/last-update', [PropertyMapController::class, 'lastUpdate']);
     Route::get('/properties/filters', [PropertyMapController::class, 'filters']);
     Route::get('/properties/search', [PropertyMapController::class, 'search']);

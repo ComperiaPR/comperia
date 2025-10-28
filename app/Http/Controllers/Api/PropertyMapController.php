@@ -27,6 +27,12 @@ class PropertyMapController extends Controller
 
         $response = $this->propertyMapService->inBounds($validated);
 
+        logger()->info('Map inBounds request', [
+            'bounds' => $validated,
+            'response_total' => $response['total'] ?? 0,
+            'cached' => isset($response['cached_at']),
+        ]);
+
         return response()->json($response);
     }
 
@@ -34,8 +40,15 @@ class PropertyMapController extends Controller
     {
         // Bump version, effectively invalidating all cached tiles
         Cache::increment('map:version');
+        
+        // Clear file cache
+        $cacheFile = storage_path('app/cache/map_locations.json');
+        if (file_exists($cacheFile)) {
+            unlink($cacheFile);
+        }
+        
         return response()->json([
-            'message' => 'Map cache version bumped',
+            'message' => 'Map cache cleared',
             'version' => Cache::get('map:version'),
             'cleared_at' => now()->toISOString(),
         ]);
@@ -87,6 +100,58 @@ class PropertyMapController extends Controller
                     ->get(),
             ];
         });
+
+        return response()->json($data);
+    }
+
+    public function allLocations(): \Illuminate\Http\JsonResponse
+    {
+        // Use file cache instead of database for large datasets
+        $cacheKey = 'map:all_locations';
+        $cacheFile = storage_path('app/cache/map_locations.json');
+        $cacheTime = 3600; // 1 hour
+        
+        // Check if cache file exists and is fresh
+        if (file_exists($cacheFile) && (time() - filemtime($cacheFile)) < $cacheTime) {
+            $data = json_decode(file_get_contents($cacheFile), true);
+            return response()->json($data);
+        }
+
+        // Build fresh data
+        $properties = Property::query()
+            ->select(['id', 'street', 'unit_number', 'latitude', 'longitude'])
+            ->where('public_web', true)
+            ->whereNotNull('latitude')
+            ->whereNotNull('longitude')
+            ->where('latitude', '!=', '')
+            ->where('longitude', '!=', '')
+            ->whereRaw('CAST(latitude AS DECIMAL(10,6)) > 0')
+            ->get()
+            ->map(function ($property) {
+                // Convert to plain array to reduce size
+                return [
+                    'id' => $property->id,
+                    'street' => $property->street,
+                    'unit_number' => $property->unit_number,
+                    'latitude' => $property->latitude,
+                    'longitude' => $property->longitude,
+                ];
+            })
+            ->values()
+            ->toArray();
+
+        $data = [
+            'properties' => $properties,
+            'total' => count($properties),
+            'cached_at' => now()->toISOString(),
+            'version' => Cache::get('map:version', 1),
+        ];
+
+        // Save to file cache
+        if (!is_dir(dirname($cacheFile))) {
+            mkdir(dirname($cacheFile), 0755, true);
+        }
+        file_put_contents($cacheFile, json_encode($data));
 
         return response()->json($data);
     }
