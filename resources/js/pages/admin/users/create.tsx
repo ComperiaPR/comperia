@@ -11,6 +11,8 @@ import SelectElement from '@/components/ui/select-element';
 import AppLayout from '@/layouts/app-layout';
 import { BreadcrumbItem, User } from '@/types';
 import { Municipality } from '@/types/master-data';
+import { toast } from 'sonner';
+import { Checkbox } from '@/components/ui/checkbox';
 
 interface PageProps<T = {}> {
     auth: {
@@ -19,16 +21,17 @@ interface PageProps<T = {}> {
     roles: Record<string, string>;
     users: User[];
     municipalities: Municipality[];
-    user_types: Record<string, string>;
+    account_types: Record<string, string>;
     // Other props can be added here
 }
 
 const modelUser = {
-    identification: '',
+    document: '',
     first_name: '',
     last_name: '',
     email: '',
     password: '',
+    password_confirmation: '',
     role: '',
     company_name: '',
     address_main: '',
@@ -48,12 +51,12 @@ export default function CreateUser({
     auth,
     roles,
     users,
-    user_types,
+    account_types,
     municipalities,
 }: PageProps<{
     roles: Record<string, string>;
     users: User[];
-    user_types: Record<string, string>;
+    account_types: Record<string, string>;
     municipalities: Municipality[];
 }>) {
     let loading: boolean = false;
@@ -62,12 +65,23 @@ export default function CreateUser({
     // console.info('Roles disponibles:', municipalities);
 
     const clearForm = () => {
+        setData('document', '');
         setData('first_name', '');
         setData('last_name', '');
+        setData('company_name', '');
         setData('email', '');
         setData('password', '');
+        setData('password_confirmation', '');
+        setData('zip_code', '');
+        setData('address_main', '');
+        setData('address_secondary', '');
+        setData('municipality_id', '');
+        setData('phone_number', '');
+        setData('cell_number', '');
+        setData('date_start', '');
+        setData('date_finish', '');
         setData('role', '');
-        // setData('batches', []);
+        setData('account_type', '');
     };
 
     const submit: FormEventHandler = (e) => {
@@ -75,11 +89,20 @@ export default function CreateUser({
         loading = true;
         post(route('users.store'), {
             onSuccess: () => {
+                toast.success('Usuario creado', {
+                    description: 'Los datos del usuario han sido guardados exitosamente.',
+                });
                 clearForm();
             },
             onFinish: () => {
                 loading = false;
             },
+            onError: () => {
+                toast.error('Error al crear usuario', {
+                    description: 'Hubo un problema al guardar los datos del usuario.',
+                });
+                loading = false;
+            }
         });
     };
 
@@ -104,16 +127,16 @@ export default function CreateUser({
                                         {/* Content */}
                                         <div className="grid grid-cols-1 gap-3 p-4 sm:grid-cols-2 sm:gap-2 lg:grid-cols-3">
                                             <div>
-                                                <Label htmlFor="identification">Identification</Label>
+                                                <Label htmlFor="document">Identification</Label>
                                                 <Input
-                                                    id="identification"
+                                                    id="document"
                                                     type="text"
-                                                    value={data.identification}
-                                                    onChange={(e) => setData('identification', e.target.value)}
+                                                    value={data.document}
+                                                    onChange={(e) => setData('document', e.target.value)}
                                                     placeholder="Identification"
                                                     disabled={processing}
                                                 />
-                                                <InputError message={errors.identification} className="mt-2" />
+                                                <InputError message={errors.document} className="mt-2" />
                                             </div>
                                             <div>
                                                 <Label htmlFor="first_name">First Name</Label>
@@ -174,6 +197,18 @@ export default function CreateUser({
                                                     disabled={processing}
                                                 />
                                                 <InputError message={errors.password} className="mt-2" />
+                                            </div>
+                                            <div>
+                                                <Label htmlFor="password_confirmation">Confirmar Contraseña</Label>
+                                                <Input
+                                                    id="password_confirmation"
+                                                    type="password"
+                                                    value={data.password_confirmation}
+                                                    onChange={(e) => setData('password_confirmation', e.target.value)}
+                                                    placeholder="Confirmar Contraseña"
+                                                    disabled={processing}
+                                                />
+                                                <InputError message={errors.password_confirmation} className="mt-2" />
                                             </div>
                                             <div>
                                                 <Label htmlFor="address_main">Postal Address Main</Label>
@@ -268,14 +303,14 @@ export default function CreateUser({
                                                 <InputError message={errors.role} className="mt-2" />
                                             </div>
                                             <div>
-                                                <Label htmlFor="role">Account Type</Label>
+                                                <Label htmlFor="account_type">Account Type</Label>
                                                 <SelectElement
-                                                    data={Object.entries(user_types).map(([value, label]) => ({ id: value, name: label }))}
+                                                    data={Object.entries(account_types).map(([value, label]) => ({ id: value, name: label }))}
                                                     valueSelected={data.account_type}
-                                                    onChangeEvent={useCallback((newValue: string) => setData('role', newValue), [setData])}
+                                                    onChangeEvent={useCallback((newValue: string) => setData('account_type', newValue), [setData])}
                                                     className="w-full border-slate-200 bg-white"
                                                 />
-                                                <InputError message={errors.role} className="mt-2" />
+                                                <InputError message={errors.account_type} className="mt-2" />
                                             </div>                                            
                                             <div className="space-y-2.5">
                                                 <Label htmlFor="date_start">Start Date</Label>

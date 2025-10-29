@@ -61,7 +61,7 @@ const CreateProperty = (masterData: MasterDataProps) => {
         () => ({
             // acepta solo dígitos (permite vacío). Si quieres hacerlo obligatorio, valida en otro lugar.
             daily: (v: unknown) => (/^\d*$/.test(String(v)) ? null : 'Daily debe contener solo dígitos.'),
-            zip_code: (v: unknown) => (/^\d*$/.test(String(v)) ? null : 'Zip Code debe contener solo dígitos.'),
+            // zip_code: (v: unknown) => (/^\d*$/.test(String(v)) ? null : 'Zip Code debe contener solo dígitos.'),
             latitude: (v: unknown) => (/^[\d,-]*$/.test(String(v)) ? null : 'Latitude debe contener solo dígitos y comas.'),
             longitude: (v: unknown) => (/^[\d,-]*$/.test(String(v)) ? null : 'Longitude debe contener solo dígitos y comas.'),
             // añadir más reglas si es necesario:
@@ -179,6 +179,9 @@ const CreateProperty = (masterData: MasterDataProps) => {
                 setData(initialValues);
                 initialValues.daily = initialTemp.daily;
                 initialValues.municipality_id = initialTemp.municipality_id;
+                const selectedMunicipality = InfoMunicipalitys.find((m) => m.id === Number(initialValues.municipality_id));
+                initialValues.zip_code = selectedMunicipality ? selectedMunicipality.zipcode : '';
+                initialValues.cadastre = selectedMunicipality ? selectedMunicipality.catastro : '';
                 toast.success('Propiedad creada', {
                     description: 'Los datos de la propiedad han sido guardados exitosamente.',
                 });
@@ -489,7 +492,6 @@ const CreateProperty = (masterData: MasterDataProps) => {
                                     <Input
                                         value={data.zip_code ?? ''}
                                         onChange={(e) => handleChange('zip_code', e.target.value)}
-                                        onBlur={() => validateField('zip_code')}
                                         placeholder="Zip Code"
                                         className="w-full border-slate-200 bg-white"
                                     />

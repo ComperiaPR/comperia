@@ -43,7 +43,7 @@ return new class extends Migration
             $table->string('inscription', 20)->nullable()->comment('Inscription');
             $table->text('source')->nullable()->comment('Source');
             $table->text('remarks')->nullable()->comment('Remarks');
-            $table->foreignId('mortgagee_id')->constrained('mortgagees')->comment('Mortgagee - Acreedor hipotecario');
+            $table->foreignId('mortgagee_id')->nullable()->constrained('mortgagees')->comment('Mortgagee - Acreedor hipotecario');
             $table->decimal('mortgagee_amount', 16,2)->nullable()->comment('Monto del acreedor hipotecario');
             $table->decimal('interest_rate', 8,2)->nullable()->comment('Interest Rate %');
             $table->string('latitude', 20)->nullable()->comment('Latitud de la propiedad');
@@ -60,7 +60,7 @@ return new class extends Migration
             $table->string('zoning', 255)->nullable()->comment('Zoning');
             $table->string('flood_zone', 255)->nullable()->comment('Flood Zone');
             $table->string('past_current_use', 255)->nullable()->comment('Property Past Current Use');
-            $table->foreignId('property_condition_id')->constrained('property_conditions')->comment('Property Condition');
+            $table->foreignId('property_condition_id')->nullable()->constrained('property_conditions')->comment('Property Condition');
             $table->boolean('public_web')->default(false)->comment('Public Web');
 
             $table->timestamps();

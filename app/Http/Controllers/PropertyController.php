@@ -45,12 +45,12 @@ class PropertyController extends Controller
     public function create(): Response
     {
         // Gate::authorize(PermissionsEnum::CreateProperties);
-        $municipalities = Municipality::get();
-        $property_statuses = PropertyStatus::get();
-        $transaction_types = TransactionType::get();
-        $property_types = PropertyType::get();
-        $mortgagees = Mortgagee::get();
-        $property_conditions = PropertyCondition::get();
+        $municipalities = Municipality::orderBy('name')->get();
+        $property_statuses = PropertyStatus::orderBy('name')->get();
+        $transaction_types = TransactionType::orderBy('name')->get();
+        $property_types = PropertyType::orderBy('name')->get();
+        $mortgagees = Mortgagee::orderBy('name')->get();
+        $property_conditions = PropertyCondition::orderBy('name')->get();
 
         return Inertia::render('dashboard/properties/create-property',[
             'municipalities' => $municipalities,
@@ -65,12 +65,12 @@ class PropertyController extends Controller
     public function createLite(): Response
     {
         // Gate::authorize(PermissionsEnum::CreateProperties);
-        $municipalities = Municipality::get();
-        $property_statuses = PropertyStatus::get();
-        $transaction_types = TransactionType::get();
-        $property_types = PropertyType::get();
-        $mortgagees = Mortgagee::get();
-        $property_conditions = PropertyCondition::get();
+        $municipalities = Municipality::orderBy('name')->get();
+        $property_statuses = PropertyStatus::orderBy('name')->get();
+        $transaction_types = TransactionType::orderBy('name')->get();
+        $property_types = PropertyType::orderBy('name')->get();
+        $mortgagees = Mortgagee::orderBy('name')->get();
+        $property_conditions = PropertyCondition::orderBy('name')->get();
 
         return Inertia::render('dashboard/properties/create-property-lite',[
             'municipalities' => $municipalities,
@@ -100,12 +100,12 @@ class PropertyController extends Controller
     public function show(Property $property): Response
     {
         // Gate::authorize(PermissionsEnum::ViewProperties);
-        $municipalities = Municipality::get();
-        $property_statuses = PropertyStatus::get();
-        $transaction_types = TransactionType::get();
-        $property_types = PropertyType::get();
-        $mortgagees = Mortgagee::get();
-        $property_conditions = PropertyCondition::get();
+        $municipalities = Municipality::orderBy('name')->get();
+        $property_statuses = PropertyStatus::orderBy('name')->get();
+        $transaction_types = TransactionType::orderBy('name')->get();
+        $property_types = PropertyType::orderBy('name')->get();
+        $mortgagees = Mortgagee::orderBy('name')->get();
+        $property_conditions = PropertyCondition::orderBy('name')->get();
 
         return Inertia::render('dashboard/properties/update-property', [
             'property' => $property,

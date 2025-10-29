@@ -9,6 +9,8 @@ use App\Http\Requests\Admin\UserStoreRequest;
 use App\Models\Municipality;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Inertia\Response;
 use Inertia\Inertia;
 
@@ -90,25 +92,45 @@ class UserController extends Controller
         return Inertia::render('admin/users/create',[
             'municipalities' => $municipalities,
             'roles' => RolesEnum::labels(),
-            'user_types' => UserTypeEnum::labels(),
+            'account_types' => UserTypeEnum::labels(),
         ]);
     }
 
     // Almacena un nuevo usuario
     public function store(UserStoreRequest $request)
     {
+        
+        DB::beginTransaction();
+
         try {
-            
-            $user = User::where()->first();
-            if(!$user){
-                $user = new User();
-            }
-            $user->save();
-            
-            
+
+            $user = User::create([
+                'document' => $request->document,
+                'first_name' => $request->first_name,
+                'last_name' => $request->last_name,
+                'company_name' => $request->company_name,
+                'municipality_id' => $request->municipality_id,
+                'zip_code' => $request->zip_code,
+                'account_type' => $request->account_type,
+                'email' => $request->email,
+                'username' => $request->email,
+                'password' => Hash::make($request->password),
+                'address_main' => $request->address_main,
+                'address_secondary' => $request->address_secondary,
+                'phone_number' => $request->phone_number,
+                'cell_number' => $request->cell_number,
+                'email_verified_at' => now(),
+                'is_active' => true,
+            ]);
+
+            $user->assignRole($request->role);
+
+            DB::commit();
+
             return redirect()->route('users.create');
-        } catch (\Exception $e) {
-            return back()->withErrors(['error' => $e->getMessage()]);
+        } catch (\Throwable $th) {
+            DB::rollBack();
+            return back()->withErrors(['error' => 'No se pudo crear el usuario.'.$th->getMessage()]);
         }
     }
 

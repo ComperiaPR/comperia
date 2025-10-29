@@ -1,17 +1,26 @@
 import AppLogoIcon from '@/components/app-logo-icon';
 import { Link } from '@inertiajs/react';
 import { type PropsWithChildren } from 'react';
+import { Toaster } from 'sonner';
 
 interface AuthLayoutProps {
     name?: string;
     title?: string;
     description?: string;
+    type?: string;
 }
 
-export default function AuthSimpleLayout({ children, title, description }: PropsWithChildren<AuthLayoutProps>) {
+export default function AuthSimpleLayout({ children, title, description, type }: PropsWithChildren<AuthLayoutProps>) {
     return (
         <div className="flex min-h-svh flex-col items-center justify-center gap-6 bg-transparent p-6 md:p-10">
-            <div className="w-full max-w-md bg-background p-8 rounded-lg shadow-lg border border-border">
+            <div
+                className={
+                    "w-full bg-background p-8 rounded-lg shadow-lg border border-border " +
+                    (type === 'register'
+                        ? "xl:max-w-3/4 lg:max-w-9/10 md:max-w-9/10"
+                        : "max-w-md")
+                }
+            >
                 <div className="flex flex-col gap-8">
                     <div className="flex flex-col items-center gap-4">
                         {/* <Link href={route('home')} className="flex flex-col items-center gap-2 font-medium">
@@ -28,6 +37,7 @@ export default function AuthSimpleLayout({ children, title, description }: Props
                     </div>
                     {children}
                 </div>
+                <Toaster position="top-center" richColors toastOptions={{ style: { fontSize: "0.8rem" } }} />
             </div>
         </div>
     );

@@ -16,8 +16,9 @@ class RolesAndPermissionsSeeder extends Seeder
     {
         // Create roles
         $adminRole = Role::create(['name' => 'admin']);
-        $editorRole = Role::create(['name' => 'editor']);
-        $userRole = Role::create(['name' => 'user']);
+        $superUserRole = Role::create(['name' => 'super_user']);
+        $clientRole = Role::create(['name' => 'client']);
+        $writerRole = Role::create(['name' => 'writer']);
 
         // Create permissions
         $createPropertyPermission = Permission::create(['name' => 'create property']);
@@ -29,10 +30,15 @@ class RolesAndPermissionsSeeder extends Seeder
         $adminRole->givePermissionTo($editPropertyPermission);
         $adminRole->givePermissionTo($deletePropertyPermission);
 
-        $editorRole->givePermissionTo($createPropertyPermission);
-        $editorRole->givePermissionTo($editPropertyPermission);
+        // Assign permissions to roles
+        $superUserRole->givePermissionTo($createPropertyPermission);
+        $superUserRole->givePermissionTo($editPropertyPermission);
+        $superUserRole->givePermissionTo($deletePropertyPermission);
 
-        $userRole->givePermissionTo($createPropertyPermission);
+        $writerRole->givePermissionTo($createPropertyPermission);
+        $writerRole->givePermissionTo($editPropertyPermission);
+
+        // $clientRole->givePermissionTo($createPropertyPermission);
 
     }
 }

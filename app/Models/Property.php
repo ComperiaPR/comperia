@@ -85,7 +85,7 @@ class Property extends Model
 		'deed_no' => 'int',
 		'sale_date' => 'datetime',
 		'transaction_type_id' => 'int',
-		'zip_code' => 'int',
+		'zip_code' => 'string',
 		'property_type_id' => 'int',
 		'mortgagee_id' => 'int',
 		'mortgagee_amount' => 'float',

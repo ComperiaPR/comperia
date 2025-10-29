@@ -50,7 +50,7 @@ const UpdateProperty = (masterData: MasterDataProps) => {
         () => ({
             // acepta solo dígitos (permite vacío). Si quieres hacerlo obligatorio, valida en otro lugar.
             daily: (v: unknown) => (/^\d*$/.test(String(v)) ? null : 'Daily debe contener solo dígitos.'),
-            zip_code: (v: unknown) => (/^\d*$/.test(String(v)) ? null : 'Zip Code debe contener solo dígitos.'),
+            // zip_code: (v: unknown) => (/^\d*$/.test(String(v)) ? null : 'Zip Code debe contener solo dígitos.'),
             latitude: (v: unknown) => (/^[\d,-]*$/.test(String(v)) ? null : 'Latitude debe contener solo dígitos y comas.'),
             longitude: (v: unknown) => (/^[\d,-]*$/.test(String(v)) ? null : 'Longitude debe contener solo dígitos y comas.'),
             // añadir más reglas si es necesario:
@@ -459,7 +459,7 @@ const UpdateProperty = (masterData: MasterDataProps) => {
                                     <Input
                                         value={data.zip_code ?? ''}
                                         onChange={(e) => handleChange('zip_code', e.target.value)}
-                                        onBlur={() => validateField('zip_code')}
+                                        // onBlur={() => validateField('zip_code')}
                                         placeholder="Zip Code"
                                         className="w-full border-slate-200 bg-white"
                                     />

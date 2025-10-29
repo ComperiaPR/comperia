@@ -37,7 +37,7 @@ export interface User {
     id: number;
     username: string;
     email: string;
-    identification: string;
+    document: string;
     first_name: string;
     last_name: string;
     company_name: string;

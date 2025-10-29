@@ -2,8 +2,6 @@
 
 namespace Database\Seeders;
 
-use App\Models\Municipality;
-use App\Models\User;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -16,6 +14,12 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             MunicipalitySeeder::class,
+            PropertyTypeSeeder::class,
+            TransactionTypeSeeder::class,
+            MortgageeSeeder::class,
+            PropertyStatusSeeder::class,
+            PropertyConditionSeeder::class,
+            PlanSeeder::class,
             RolesAndPermissionsSeeder::class,
             UserSeeder::class,
         ]);

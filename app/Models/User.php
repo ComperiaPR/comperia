@@ -67,6 +67,7 @@ class User extends Authenticatable
 		'address_main',
 		'address_secondary',
 		'zip_code',
+		'account_type',
 		'password',
 		'email_verified_at',
 		'terms',
@@ -74,6 +75,9 @@ class User extends Authenticatable
 		'date_start',
 		'date_finish',
 		'municipality_id',
+		'phone_number',
+		'cell_number',
+		'terms',
 		'remember_token',
 	];
 
