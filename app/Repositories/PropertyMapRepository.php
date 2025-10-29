@@ -24,25 +24,22 @@ class PropertyMapRepository implements PropertyMapInterface
         $west  = round((float) $bounds['west'], 4);
         $zoom  = (int) $bounds['zoom'];
 
-        $limit = $this->getLimitByZoom($zoom);
-
         // Include version to force fresh data after writes
         $version = Cache::get('map:version', 1);
         $cacheKey = sprintf('map:bounds:%s:%s:%s:%s:z%d:v%s', $north, $south, $east, $west, $zoom, $version);
 
         $ttl = 300; // 5 minutes
 
-        $payload = Cache::remember($cacheKey, $ttl, function () use ($north, $south, $east, $west, $limit) {
+        $payload = Cache::remember($cacheKey, $ttl, function () use ($north, $south, $east, $west) {
             $properties = Property::query()
                 ->select([
                     'id', 'street', 'unit_number', 'municipality_id', 'latitude', 'longitude',
                     'sale_date', 'price_sqr_meter', 'area_sqr_feet', 'property_type_id', 'updated_at'
                 ])
-                ->publicWeb()
+                ->where('public_web', true)
                 ->inBounds($north, $south, $east, $west)
                 ->orderByDesc('updated_at')
-                ->limit($limit)
-                ->get();
+                ->get(); // Sin límite, muestra todas las que estén en los bounds
 
             return [
                 'properties' => $properties,
@@ -82,7 +79,7 @@ class PropertyMapRepository implements PropertyMapInterface
                 'id', 'street', 'unit_number', 'municipality_id', 'latitude', 'longitude',
                 'sale_date', 'price_sqr_meter', 'area_sqr_feet', 'property_type_id', 'property_status_id', 'updated_at'
             ])
-            ->publicWeb()
+            ->where('public_web', true)
             ->whereNotNull('latitude')
             ->whereNotNull('longitude')
             ->with([
@@ -155,13 +152,13 @@ class PropertyMapRepository implements PropertyMapInterface
     private function getLimitByZoom(int $zoom): int
     {
         if ($zoom <= 10) {
-            return 500;
+            return 1000;
         } elseif ($zoom <= 13) {
-            return 2000;
-        } elseif ($zoom <= 16) {
             return 5000;
+        } elseif ($zoom <= 16) {
+            return 15000;
         } else {
-            return 10000;
+            return 50000; // Aumentado para mostrar más propiedades en zoom cercano
         }
     }
 }
