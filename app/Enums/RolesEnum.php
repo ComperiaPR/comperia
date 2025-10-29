@@ -10,7 +10,7 @@ enum RolesEnum: string
     case SuperUser = 'super_user';
     case Client = 'client';
     case Writer = 'writer';
-    case Interventoria = 'interventoria';
+    // case Interventoria = 'interventoria';
 
     public static function labels(): array
     {
@@ -19,7 +19,7 @@ enum RolesEnum: string
             self::SuperUser->value => 'Super Usuario',
             self::Client->value => 'Cliente',
             self::Writer->value => 'Digitador',
-            self::Interventoria->value => 'Interventoria',
+            // self::Interventoria->value => 'Interventoria',
         ];
     }
 

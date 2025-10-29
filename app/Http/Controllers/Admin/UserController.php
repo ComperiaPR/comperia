@@ -3,7 +3,10 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Enums\RolesEnum;
+use App\Enums\UserTypeEnum;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\UserStoreRequest;
+use App\Models\Municipality;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Response;
@@ -81,13 +84,32 @@ class UserController extends Controller
     // Muestra el formulario para crear un nuevo usuario
     public function create()
     {
-        // ...implementación...
+        // Gate::authorize(PermissionsEnum::CreateProperties);
+        $municipalities = Municipality::get();
+
+        return Inertia::render('admin/users/create',[
+            'municipalities' => $municipalities,
+            'roles' => RolesEnum::labels(),
+            'user_types' => UserTypeEnum::labels(),
+        ]);
     }
 
     // Almacena un nuevo usuario
-    public function store(Request $request)
+    public function store(UserStoreRequest $request)
     {
-        // ...implementación...
+        try {
+            
+            $user = User::where()->first();
+            if(!$user){
+                $user = new User();
+            }
+            $user->save();
+            
+            
+            return redirect()->route('users.create');
+        } catch (\Exception $e) {
+            return back()->withErrors(['error' => $e->getMessage()]);
+        }
     }
 
     // Muestra un usuario específico

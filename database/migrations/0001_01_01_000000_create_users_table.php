@@ -13,22 +13,25 @@ return new class extends Migration
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
-            $table->string('email', 255)->unique()->comment('Email del usuario');
-            $table->string('username', 255)->unique()->comment('Nombre de usuario');
-            $table->string('document', 12)->nullable()->comment('Número de documento');
+            $table->string('email', 120)->unique()->comment('Email del usuario');
+            $table->string('username', 120)->unique()->comment('Nombre de usuario');
+            $table->string('document', 18)->nullable()->comment('Número de documento');
             $table->string('first_name', 125)->comment('Nombres');
             $table->string('last_name', 125)->comment('Apellidos');
             $table->string('company_name', 255)->nullable()->comment('Nombre de la empresa');
             $table->text('address_main')->comment('Dirección principal');
             $table->text('address_secondary')->nullable()->comment('Dirección secundaria');
+            $table->foreignId('municipality_id')->constrained()->comment('Municipio del usuario');
             $table->string('zip_code', 10)->nullable()->comment('Código postal');
+            $table->string('phone_number', 25)->nullable()->comment('Número de teléfono');
+            $table->string('cell_number', 25)->nullable()->comment('Número de celular');
             $table->string('password', 255)->comment('Contraseña');
             $table->timestamp('email_verified_at')->nullable();
-            $table->boolean('terms')->default(false)->comment('Acepta los términos');
+            $table->enum('account_type', ['personal', 'business'])->comment('Tipo de cuenta')->nullable();
+            $table->boolean('terms')->default(true)->comment('Acepta los términos');
             $table->boolean('is_active')->default(true)->comment('Estado del usuario');
             $table->dateTime('date_start')->nullable()->comment('Fecha de inicio membresia');
             $table->dateTime('date_finish')->nullable()->comment('Fecha de fin membresia');
-            $table->foreignId('municipality_id')->constrained()->comment('Municipio del usuario');
             $table->rememberToken();
             $table->timestamps();
         });

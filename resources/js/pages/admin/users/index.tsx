@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { Head, router } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -16,10 +16,6 @@ interface UserData {
     email: string;
     is_active: boolean;
     email_verified_at: string | null;
-    batches: Array<{
-        id: number;
-        name: string;
-    }>;
     roles: Array<{
         id: number;
         name: string;
@@ -38,12 +34,10 @@ interface PageProps {
     };
     users: PaginatedData<UserData>;
     roles: Record<string, string>;
-    batches: any[];
     filters: {
         search?: string;
         roles?: string[];
         statuses?: string[];
-        batches?: number[];
     };
 }
 
@@ -51,7 +45,7 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Usuarios', href: '/admin/users' },
 ];
 
-export default function UsersIndex({ auth, users, roles, batches, filters }: PageProps) {
+export default function UsersIndex({ auth, users, roles, filters }: PageProps) {
     const [loading, setLoading] = useState(false);
     const [modalOpen, setModalOpen] = useState(false);
     const [selectedUser, setSelectedUser] = useState<UserData | null>(null);
@@ -153,7 +147,7 @@ export default function UsersIndex({ auth, users, roles, batches, filters }: Pag
             {/* <LoadingScreen loading={loading} label="Cargando usuarios..." /> */}
 
             <div className="py-4 w-full">
-                <div className="max-w-7xl mx-auto sm:px-6 lg:px-4">
+                <div className="w-full mx-auto sm:px-6 lg:px-4">
                     {/* Componente de filtros */}
                     {/* <UserFilters
                         roles={roles}
@@ -175,10 +169,13 @@ export default function UsersIndex({ auth, users, roles, batches, filters }: Pag
                                     )}
                                 </CardDescription>
                             </div>
-                            <Button onClick={handleCreateUser}>
+                            <Link
+                                href="/users/create"
+                                className="inline-flex items-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-white shadow transition-colors hover:bg-primary/90"
+                            >
                                 <i className='bi bi-plus-lg'></i>
                                 Crear Usuario
-                            </Button>
+                            </Link>
                         </CardHeader>
                         <CardContent>
                             <div className="overflow-x-auto">

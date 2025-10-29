@@ -24,7 +24,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::put('/{property}', [PropertyController::class, 'update'])->name('properties.update');
         Route::delete('/{property}', [PropertyController::class, 'destroy'])->name('properties.destroy');
     });
-    Route::prefix('users')->name('users.')->group(function () {
+    Route::prefix('users')->group(function () {
         Route::get('/', [UserController::class, 'index'])->name('users.index');
         Route::get('/create', [UserController::class, 'create'])->name('users.create');
         Route::post('/', [UserController::class, 'store'])->name('users.store');
