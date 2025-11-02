@@ -37,7 +37,9 @@ class UserPayment extends Model
 		'plan_id' => 'int',
 		'payment_type_id' => 'int',
 		'date_start' => 'datetime',
-		'date_finish' => 'datetime'
+		'date_finish' => 'datetime',
+		'amount' => 'decimal:2',
+		'raw_response' => 'json',
 	];
 
 	protected $fillable = [
@@ -46,7 +48,14 @@ class UserPayment extends Model
 		'payment_type_id',
 		'ip',
 		'date_start',
-		'date_finish'
+		'date_finish',
+		'status',
+		'order_id',
+		'amount',
+		'currency',
+		'payer_email',
+		'payer_name',
+		'raw_response',
 	];
 
 	public function payment_type()

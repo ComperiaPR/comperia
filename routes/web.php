@@ -3,6 +3,7 @@
 use App\Http\Controllers\PropertyController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Api\PropertyMapController;
+use App\Http\Controllers\Paypal\PayPalController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -10,7 +11,7 @@ Route::get('/', function () {
     return Inertia::render('public/welcome');
 })->name('home');
 
-Route::middleware(['auth', 'verified'])->group(function () {
+Route::middleware(['auth', 'verified', 'membership'])->group(function () {
     Route::get('dashboard', function () {
         return Inertia::render('dashboard');
     })->name('dashboard');
@@ -32,18 +33,19 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::put('/{user}', [UserController::class, 'update'])->name('users.update');
         Route::delete('/{user}', [UserController::class, 'destroy'])->name('users.destroy');
     });
+    // Map preview page (public)
+    Route::get('/map/preview', function () {
+        return Inertia::render('public/map-preview');
+    })->name('map.preview');
+});
+Route::middleware(['auth'])->group(function () {
+    Route::post('/paypal/create-order', [PayPalController::class, 'createOrder']);
+    Route::post('/paypal/capture-order', [PayPalController::class, 'captureOrder']);
 });
 
-require __DIR__.'/settings.php';
-require __DIR__.'/auth.php';
-
-// Map preview page (public)
-Route::get('/map/preview', function () {
-    return Inertia::render('public/map-preview');
-})->name('map.preview');
 
 // Lightweight API endpoints for the map
-Route::prefix('api')->group(function () {
+Route::prefix('api')->middleware(['auth','membership'])->group(function () {
     Route::get('/properties/in-bounds', [PropertyMapController::class, 'inBounds']);
     Route::get('/properties/all-locations', [PropertyMapController::class, 'allLocations']);
     Route::get('/properties/last-update', [PropertyMapController::class, 'lastUpdate']);
@@ -52,3 +54,14 @@ Route::prefix('api')->group(function () {
     // Protect clearCache behind auth if needed
     Route::middleware(['auth'])->post('/properties/clear-cache', [PropertyMapController::class, 'clearCache']);
 });
+
+// Map preview page (public)
+Route::get('membership/required', function () {
+    return Inertia::render('public/membership/required');
+})->name('membership.required');
+
+
+require __DIR__.'/settings.php';
+require __DIR__.'/auth.php';
+
+
