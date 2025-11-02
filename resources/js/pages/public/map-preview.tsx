@@ -20,17 +20,12 @@ function useGoogleMaps(apiKey: string) {
     }
 
     const script = document.createElement('script');
-    // Cargo sólo la API core para evitar dependencias innecesarias
     script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}`;
     script.async = true;
     script.defer = true;
     script.dataset.googleMaps = 'true';
     script.addEventListener('load', () => setLoaded(true), { once: true });
     document.body.appendChild(script);
-
-    return () => {
-      // no eliminar script para evitar recargas múltiples en navegación SPA
-    };
   }, [apiKey]);
 
   return loaded;
@@ -50,6 +45,19 @@ interface ApiProperty {
   created_at?: string;
 }
 
+interface Filters {
+  q: string;
+  municipality_id: (string | number)[];
+  property_type_id: (string | number)[];
+  transaction_type_id: (string | number)[];
+  price_min: string;
+  price_max: string;
+  area_min: string;
+  area_max: string;
+  date_from: string;
+  date_to: string;
+}
+
 function MapFilters({ filters, setFilters, onSearch, onClear, options }: any) {
   return (
     <form className="space-y-3 mb-3" onSubmit={e => e.preventDefault()}>
@@ -58,21 +66,21 @@ function MapFilters({ filters, setFilters, onSearch, onClear, options }: any) {
           options={options.municipalities.map((m: any) => ({ label: m.name, value: String(m.id) }))}
           value={filters.municipality_id}
           onChange={(selected: (string | number)[]) => setFilters({ ...filters, municipality_id: selected })}
-          maxTags={3}
+          maxTags={2}
           placeholder="Selecciona municipios"
         />
         <CustomMultiSelect
           options={options.property_types.map((t: any) => ({ label: t.name, value: String(t.id) }))}
           value={filters.property_type_id}
           onChange={(selected: (string | number)[]) => setFilters({ ...filters, property_type_id: selected })}
-          maxTags={3}
+          maxTags={2}
           placeholder="Selecciona tipos de propiedad"
         />
         <CustomMultiSelect
           options={options.transaction_types.map((tt: any) => ({ label: tt.name, value: String(tt.id) }))}
           value={filters.transaction_type_id}
           onChange={(selected: (string | number)[]) => setFilters({ ...filters, transaction_type_id: selected })}
-          maxTags={3}
+          maxTags={2}
           placeholder="Selecciona tipos de transacción"
         />
         <input
@@ -146,6 +154,19 @@ function MapFilters({ filters, setFilters, onSearch, onClear, options }: any) {
   );
 }
 
+const EMPTY_FILTERS: Filters = {
+  q: '',
+  municipality_id: [],
+  property_type_id: [],
+  transaction_type_id: [],
+  price_min: '',
+  price_max: '',
+  area_min: '',
+  area_max: '',
+  date_from: '',
+  date_to: ''
+};
+
 export default function MapPreview() {
   const apiKey = (document.querySelector('meta[name="gmaps-key"]') as HTMLMetaElement)?.content || '';
   const loaded = useGoogleMaps(apiKey);
@@ -155,23 +176,14 @@ export default function MapPreview() {
   const markersRef = useRef<any[]>([]);
 
   const [properties, setProperties] = useState<ApiProperty[]>([]);
-  const [filters, setFilters] = useState<any>({
-    q: '',
-    municipality_id: [],
-    property_type_id: [],
-    transaction_type_id: [],
-    price_min: '',
-    price_max: '',
-    area_min: '',
-    area_max: '',
-    date_from: '',
-    date_to: ''
+  const [filters, setFilters] = useState<Filters>(EMPTY_FILTERS);
+  const [options, setOptions] = useState<any>({ 
+    municipalities: [], 
+    property_types: [], 
+    transaction_types: [] 
   });
-  const [appliedFilters, setAppliedFilters] = useState(filters);
-  const [options, setOptions] = useState<any>({ municipalities: [], property_types: [], transaction_types: [] });
   const [loadingProps, setLoadingProps] = useState<boolean>(false);
 
-  // Cargar opciones de filtros
   useEffect(() => {
     let mounted = true;
     (async () => {
@@ -186,30 +198,7 @@ export default function MapPreview() {
           transaction_types: data.transaction_types || []
         });
       } catch (err) {
-        console.error('filters load error', err);
-      }
-    })();
-    return () => { mounted = false; };
-  }, []);
-
-  // Cargar propiedades (estado reactivo)
-  useEffect(() => {
-    let mounted = true;
-    setLoadingProps(true);
-    (async () => {
-      try {
-        const res = await fetch('/api/properties/all-locations');
-        if (!res.ok) {
-          console.error('error fetching properties', res.statusText);
-          return;
-        }
-        const data = await res.json();
-        if (!mounted) return;
-        setProperties(data.properties || []);
-      } catch (err) {
-        console.error('error fetching properties', err);
-      } finally {
-        if (mounted) setLoadingProps(false);
+        console.error('Error cargando filtros:', err);
       }
     })();
     return () => { mounted = false; };
@@ -226,46 +215,44 @@ export default function MapPreview() {
     clustererRef.current = new MarkerClusterer({ map: mapRef.current, markers: [] });
   }, [loaded]);
 
-  useEffect(() => { initMap(); }, [initMap]);
+  useEffect(() => { 
+    initMap(); 
+  }, [initMap]);
 
-  // Aplica filtros sobre el arreglo de properties y actualiza marcadores
-  const applyFilters = useCallback(() => {
+  useEffect(() => {
+    if (!loaded) return;
+    let mounted = true;
+    
+    (async () => {
+      try {
+        setLoadingProps(true);
+        const res = await fetch('/api/properties/all-locations');
+        if (!res.ok) throw new Error('Error al cargar propiedades');
+        const data = await res.json();
+        if (!mounted) return;
+        setProperties(data.properties || []);
+        updateMarkers(data.properties || []);
+      } catch (err) {
+        console.error('Error cargando propiedades:', err);
+      } finally {
+        if (mounted) setLoadingProps(false);
+      }
+    })();
+
+    return () => { mounted = false; };
+  }, [loaded]);
+
+  const updateMarkers = useCallback((props: ApiProperty[]) => {
     if (!mapRef.current || !clustererRef.current) return;
 
-    let props = properties.slice(); // copia
-    const f = appliedFilters;
-
-    if (f.q) {
-      const q = String(f.q).toLowerCase();
-      props = props.filter(p =>
-        (p.street || '').toLowerCase().includes(q) ||
-        (p.unit_number || '').toLowerCase().includes(q)
-      );
-    }
-    if (f.municipality_id && f.municipality_id.length)
-      props = props.filter(p => f.municipality_id.includes(String(p.municipality_id)));
-    if (f.property_type_id && f.property_type_id.length)
-      props = props.filter(p => f.property_type_id.includes(String(p.property_type_id)));
-    if (f.transaction_type_id && f.transaction_type_id.length)
-      props = props.filter(p => f.transaction_type_id.includes(String(p.transaction_type_id)));
-    if (f.price_min) props = props.filter(p => Number(p.price) >= Number(f.price_min));
-    if (f.price_max) props = props.filter(p => Number(p.price) <= Number(f.price_max));
-    if (f.area_min) props = props.filter(p => Number(p.area) >= Number(f.area_min));
-    if (f.area_max) props = props.filter(p => Number(p.area) <= Number(f.area_max));
-    if (f.date_from) props = props.filter(p => p.created_at && p.created_at >= f.date_from);
-    if (f.date_to) props = props.filter(p => p.created_at && p.created_at <= f.date_to);
-
-    // limpiar marcadores previos
-    try {
-      clustererRef.current.clearMarkers();
-    } catch (err) {
-      // algunos builds exponen métodos distintos; defensivamente eliminamos
-      console.warn('cluster clearMarkers error', err);
-    }
-    markersRef.current.forEach(m => { try { m.setMap(null); } catch (_) {} });
+    clustererRef.current.clearMarkers();
+    markersRef.current.forEach(m => { 
+      try { 
+        m.setMap(null); 
+      } catch (_) {} 
+    });
     markersRef.current = [];
 
-    // crear nuevos marcadores
     markersRef.current = props.map(p => {
       const marker = new (window as any).google.maps.Marker({
         position: { lat: Number(p.latitude), lng: Number(p.longitude) },
@@ -274,35 +261,111 @@ export default function MapPreview() {
       return marker;
     });
 
-    // agregar al clusterer
     if (markersRef.current.length) {
       clustererRef.current.addMarkers(markersRef.current);
     }
-  }, [properties, appliedFilters]);
+  }, []);
 
-  // Ejecutar applyFilters cuando cambia appliedFilters o cuando properties se cargan o cuando el mapa esté listo
-  useEffect(() => {
+  const performSearch = useCallback(async () => {
     if (!loaded) return;
-    applyFilters();
-  }, [loaded, properties, appliedFilters, applyFilters]);
 
-  const handleSearch = () => setAppliedFilters({ ...filters });
-  const handleClear = () => {
-    const cleared = {
-      q: '',
-      municipality_id: [],
-      property_type_id: [],
-      transaction_type_id: [],
-      price_min: '',
-      price_max: '',
-      area_min: '',
-      area_max: '',
-      date_from: '',
-      date_to: ''
-    };
-    setFilters(cleared);
-    setAppliedFilters(cleared);
-  };
+    const hasFilters = filters.q || 
+      filters.municipality_id.length > 0 ||
+      filters.property_type_id.length > 0 ||
+      filters.transaction_type_id.length > 0 ||
+      filters.price_min || filters.price_max ||
+      filters.area_min || filters.area_max ||
+      filters.date_from || filters.date_to;
+
+    if (!hasFilters) {
+      try {
+        setLoadingProps(true);
+        const res = (await fetch('/api/properties/all-locations'));
+        if (!res.ok) throw new Error('Error al cargar propiedades');
+        const data = await res.json();
+        setProperties(data.properties || []);
+        updateMarkers(data.properties || []);
+      } catch (err) {
+        console.error('Error cargando propiedades:', err);
+      } finally {
+        setLoadingProps(false);
+      }
+      return;
+    }
+
+    const params = new URLSearchParams();
+    if (filters.q) params.set('q', String(filters.q));
+    
+    if (filters.municipality_id.length > 0) {
+      filters.municipality_id.forEach(id => params.append('municipality_id[]', String(id)));
+    }
+    if (filters.property_type_id.length > 0) {
+      filters.property_type_id.forEach(id => params.append('property_type_id[]', String(id)));
+    }
+    if (filters.transaction_type_id.length > 0) {
+      filters.transaction_type_id.forEach(id => params.append('transaction_type_id[]', String(id)));
+    }
+    
+    if (filters.price_min) params.set('price_min', String(filters.price_min));
+    if (filters.price_max) params.set('price_max', String(filters.price_max));
+    if (filters.area_min) params.set('area_min', String(filters.area_min));
+    if (filters.area_max) params.set('area_max', String(filters.area_max));
+    if (filters.date_from) params.set('date_from', String(filters.date_from));
+    if (filters.date_to) params.set('date_to', String(filters.date_to));
+
+    setLoadingProps(true);
+    try {
+      const res = await fetch(`/api/properties/search?${params.toString()}`);
+      if (!res.ok) throw new Error('Error en búsqueda');
+      
+      const data = await res.json();
+      const items = data.data || data.items || [];
+      
+      const normalized = items.map((p: any) => ({
+        id: p.id,
+        latitude: p.latitude,
+        longitude: p.longitude,
+        street: p.street,
+        unit_number: p.unit_number,
+        municipality_id: p.municipality_id || p.municipality?.id || null,
+        property_type_id: p.property_type_id || p.property_type?.id || null,
+        transaction_type_id: p.property_status_id || null,
+        price: p.price ?? p.price_sqr_meter ?? null,
+        area: p.area ?? p.area_sqr_feet ?? null,
+        created_at: p.created_at || p.updated_at || null,
+      }));
+
+      setProperties(normalized);
+      updateMarkers(normalized);
+    } catch (err) {
+      console.error('Error en búsqueda:', err);
+      setProperties([]);
+      updateMarkers([]);
+    } finally {
+      setLoadingProps(false);
+    }
+  }, [filters, loaded, updateMarkers]);
+
+  const handleClear = useCallback(() => {
+    setFilters(EMPTY_FILTERS);
+    setProperties([]);
+    updateMarkers([]);
+    
+    (async () => {
+      try {
+        setLoadingProps(true);
+        const res = await fetch('/api/properties/all-locations');
+        if (!res.ok) return;
+        const data = await res.json();
+        setProperties(data.properties || []);
+        updateMarkers(data.properties || []);
+      } catch (err) {
+        console.error('Error cargando propiedades:', err);
+      } finally {
+        setLoadingProps(false);
+      }
+    })();
+  }, [updateMarkers]);
 
   return (
     <div className="w-full max-w-6xl mx-auto p-4 space-y-4">
@@ -310,7 +373,7 @@ export default function MapPreview() {
       <MapFilters
         filters={filters}
         setFilters={setFilters}
-        onSearch={handleSearch}
+        onSearch={performSearch}
         onClear={handleClear}
         options={options}
       />
