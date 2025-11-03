@@ -34,7 +34,7 @@ class PropertyMapRepository implements PropertyMapInterface
             $properties = Property::query()
                 ->select([
                     'id', 'street', 'unit_number', 'municipality_id', 'latitude', 'longitude',
-                    'sale_date', 'price_sqr_meter', 'area_sqr_feet', 'property_type_id', 'updated_at'
+                    'sale_date', 'price_sqr_meter', 'area_sqr_feet', 'property_type_id', 'updated_at', 'daily'
                 ])
                 ->where('public_web', true)
                 ->inBounds($north, $south, $east, $west)
@@ -59,7 +59,7 @@ class PropertyMapRepository implements PropertyMapInterface
         return Property::query()
             ->select([
                 'id', 'street', 'unit_number', 'municipality_id', 'latitude', 'longitude',
-                'sale_date', 'price_sqr_meter', 'area_sqr_feet', 'property_type_id', 'updated_at'
+                'sale_date', 'price_sqr_meter', 'area_sqr_feet', 'property_type_id', 'updated_at', 'daily'
             ])
             ->publicWeb()
             ->orderByDesc('updated_at')
@@ -77,7 +77,7 @@ class PropertyMapRepository implements PropertyMapInterface
         $query = Property::query()
             ->select([
                 'id', 'street', 'unit_number', 'municipality_id', 'latitude', 'longitude',
-                'sale_date', 'price_sqr_meter', 'area_sqr_feet', 'property_type_id', 'property_status_id', 'updated_at'
+                'sale_date', 'price_sqr_meter', 'area_sqr_feet', 'property_type_id', 'property_status_id', 'updated_at', 'daily'
             ])
             ->where('public_web', true)
             ->whereNotNull('latitude')

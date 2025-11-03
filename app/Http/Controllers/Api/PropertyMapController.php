@@ -96,7 +96,7 @@ class PropertyMapController extends Controller
             ->select([
                 'id', 'street', 'unit_number', 'latitude', 'longitude', 
                 'municipality_id', 'property_type_id', 'transaction_type_id', 
-                'price', 'area_sqr_meter', 'created_at'
+                'price', 'area_sqr_meter', 'created_at', 'daily'
             ])
             ->where('public_web', true)
             ->whereNotNull('latitude')
@@ -117,6 +117,7 @@ class PropertyMapController extends Controller
                 'price' => $property->price,
                 'area' => $property->area_sqr_meter,
                 'created_at' => $property->created_at ? $property->created_at->toDateString() : null,
+                'daily' => $property->daily,
             ])
             ->values()
             ->toArray();
@@ -166,7 +167,7 @@ class PropertyMapController extends Controller
             ->select([
                 'id', 'street', 'unit_number', 'latitude', 'longitude',
                 'municipality_id', 'property_type_id', 'transaction_type_id',
-                'price', 'area_sqr_meter', 'created_at'
+                'price', 'area_sqr_meter', 'created_at', 'daily'
             ])
             ->where('public_web', true)
             ->whereNotNull('latitude')
@@ -244,6 +245,7 @@ class PropertyMapController extends Controller
             'price' => $property->price,
             'area' => $property->area_sqr_meter,
             'created_at' => $property->created_at ? $property->created_at->toDateString() : null,
+            'daily' => $property->daily,
         ])->values();
 
         return response()->json([

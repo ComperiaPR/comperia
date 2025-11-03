@@ -46,6 +46,47 @@ interface ApiProperty {
   price?: number;
   area?: number;
   created_at?: string;
+  daily?: number | null;
+}
+
+// Mapeo de property_type_id a iconos
+const PROPERTY_TYPE_ICONS: Record<number, string> = {
+  // commercial.png
+  39: '/images/commercial.png',
+  5: '/images/commercial.png',
+  34: '/images/commercial.png',
+  14: '/images/commercial.png',
+  7: '/images/commercial.png',
+  38: '/images/commercial.png',
+  8: '/images/commercial.png',
+  9: '/images/commercial.png',
+  10: '/images/commercial.png',
+  37: '/images/commercial.png',
+  12: '/images/commercial.png',
+  28: '/images/commercial.png',
+  33: '/images/commercial.png',
+  13: '/images/commercial.png',
+  16: '/images/commercial.png',
+  25: '/images/commercial.png',
+  36: '/images/commercial.png',
+  6: '/images/commercial.png',
+  17: '/images/commercial.png',
+  19: '/images/commercial.png',
+  20: '/images/commercial.png',
+  21: '/images/commercial.png',
+  22: '/images/commercial.png',
+  // residential.png
+  // 25: '/images/residential.png', // Ya está en commercial
+  27: '/images/residential.png',
+  31: '/images/residential.png',
+  // rent.png
+  11: '/images/rent.png'
+  // default: land.png (se manejará en la función)
+};
+
+function getIconForPropertyType(propertyTypeId?: number): string {
+  if (!propertyTypeId) return '/images/land.png';
+  return PROPERTY_TYPE_ICONS[propertyTypeId] || '/images/land.png';
 }
 
 interface Filters {
@@ -177,6 +218,8 @@ export default function MapPreview() {
   const mapRef = useRef<any>(null);
   const clustererRef = useRef<MarkerClusterer | null>(null);
   const markersRef = useRef<any[]>([]);
+  const iconsLoadedRef = useRef<boolean>(false);
+  const infoWindowRef = useRef<any>(null);
 
   const [properties, setProperties] = useState<ApiProperty[]>([]);
   const [filters, setFilters] = useState<Filters>(EMPTY_FILTERS);
@@ -186,6 +229,25 @@ export default function MapPreview() {
     transaction_types: [] 
   });
   const [loadingProps, setLoadingProps] = useState<boolean>(false);
+
+  // Pre-cargar imágenes de iconos para carga rápida
+  useEffect(() => {
+    if (iconsLoadedRef.current) return;
+    
+    const uniqueIcons = [
+      '/images/commercial.png',
+      '/images/residential.png',
+      '/images/rent.png',
+      '/images/land.png'
+    ];
+
+    uniqueIcons.forEach(src => {
+      const img = new Image();
+      img.src = src;
+    });
+
+    iconsLoadedRef.current = true;
+  }, []);
 
   useEffect(() => {
     let mounted = true;
@@ -216,6 +278,9 @@ export default function MapPreview() {
       gestureHandling: 'greedy'
     });
     clustererRef.current = new MarkerClusterer({ map: mapRef.current, markers: [] });
+    
+    // Inicializar InfoWindow para el tooltip
+    infoWindowRef.current = new (window as any).google.maps.InfoWindow();
   }, [loaded]);
 
   useEffect(() => { 
@@ -246,7 +311,7 @@ export default function MapPreview() {
   }, [loaded]);
 
   const updateMarkers = useCallback((props: ApiProperty[]) => {
-    if (!mapRef.current || !clustererRef.current) return;
+    if (!mapRef.current || !clustererRef.current || !infoWindowRef.current) return;
 
     clustererRef.current.clearMarkers();
     markersRef.current.forEach(m => { 
@@ -257,10 +322,37 @@ export default function MapPreview() {
     markersRef.current = [];
 
     markersRef.current = props.map(p => {
+      const iconUrl = getIconForPropertyType(p.property_type_id);
+      
       const marker = new (window as any).google.maps.Marker({
         position: { lat: Number(p.latitude), lng: Number(p.longitude) },
-        title: p.street || `Propiedad ${p.id}`
+        title: p.street || `Propiedad ${p.id}`,
+        icon: {
+          url: iconUrl,
+          scaledSize: new (window as any).google.maps.Size(32, 32),
+          anchor: new (window as any).google.maps.Point(16, 32)
+        }
       });
+
+      // Click izquierdo: Abrir vista completa en nueva pestaña
+      marker.addListener('click', () => {
+        window.open(`/properties/view/${p.id}`, '_blank');
+      });
+
+      // Click derecho: Mostrar InfoWindow con daily
+      marker.addListener('rightclick', (event: any) => {
+        event.domEvent.preventDefault();
+        const dailyValue = p.daily ?? 'N/A';
+        infoWindowRef.current.setContent(`<div style="padding: 4px 8px; font-weight: 500;">${dailyValue} - ${p.id || ''}</div>`);
+        infoWindowRef.current.setPosition(event.latLng);
+        infoWindowRef.current.open(mapRef.current);
+        
+        // Cerrar después de 2 segundos
+        setTimeout(() => {
+          infoWindowRef.current.close();
+        }, 2000);
+      });
+
       return marker;
     });
 
@@ -336,6 +428,7 @@ export default function MapPreview() {
         price: p.price ?? p.price_sqr_meter ?? null,
         area: p.area ?? p.area_sqr_feet ?? null,
         created_at: p.created_at || p.updated_at || null,
+        daily: p.daily ?? null,
       }));
 
       setProperties(normalized);
