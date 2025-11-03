@@ -52,6 +52,7 @@ export interface Property {
     property_type: defaultGeneric | null;
     property_status: defaultGeneric | null;
     transaction_type: defaultGeneric | null;
+    mortgagee: defaultGeneric | null;
     lite: boolean;
 }
 

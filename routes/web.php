@@ -18,6 +18,7 @@ Route::middleware(['auth', 'verified', 'membership'])->group(function () {
 
     Route::prefix('properties')->group(function () {
         Route::get('/', [PropertyController::class, 'index'])->name('properties.index');
+        Route::get('/view/list', [PropertyController::class, 'list'])->name('properties.list');
         Route::get('/create', [PropertyController::class, 'create'])->name('properties.create');
         Route::get('/create-lite', [PropertyController::class, 'createLite'])->name('properties.create-lite');
         Route::post('/', [PropertyController::class, 'store'])->name('properties.store');
@@ -53,10 +54,10 @@ Route::prefix('api')->middleware(['auth','membership'])->group(function () {
     Route::get('/properties/filters', [PropertyMapController::class, 'filters']);
     Route::get('/properties/search', [PropertyMapController::class, 'search']);
     // Protect clearCache behind auth if needed
-    Route::middleware(['auth'])->post('/properties/clear-cache', [PropertyMapController::class, 'clearCache']);
+    Route::post('/properties/clear-cache', [PropertyMapController::class, 'clearCache']);
 });
 
-// Map preview page (public)
+// register membership required page
 Route::get('membership/required', function () {
     return Inertia::render('public/membership/required');
 })->name('membership.required');

@@ -130,4 +130,33 @@ class PropertyRepository implements PropertyInterface
     {
         return Property::with(['municipality', 'property_type', 'property_status', 'transaction_type'])->paginate(10)->onEachSide(0);
     }
+    /**
+     * Undocumented function
+     *
+     * @return LengthAwarePaginator
+     */
+    public function getClientProperties(Request $propertyRequest): LengthAwarePaginator
+    {
+        $query = Property::where('public_web', true)
+            ->with(['municipality', 'property_type', 'property_status', 'transaction_type', 'mortgagee']);
+
+        // Ordenamiento dinámico
+        $sort = $propertyRequest->input('sort');
+        $direction = $propertyRequest->input('direction', 'asc');
+
+        if ($sort) {
+            // Validar campos permitidos para evitar SQL Injection
+            $allowedSorts = [
+                'id', 'municipality_id', 'property_type_id', 'property_status_id', 'transaction_type_id',
+                'sale_date', 'price', 'buyer', 'daily', 'page_entry', 'track_no', 'folio_page', 'volumen', 'inscription', 'cadastre'
+            ];
+            if (in_array($sort, $allowedSorts)) {
+                $query->orderBy($sort, $direction === 'desc' ? 'desc' : 'asc');
+            }
+        }else{
+            $query->orderBy('id');
+        }
+
+        return $query->paginate(100)->onEachSide(0);
+    }
 }

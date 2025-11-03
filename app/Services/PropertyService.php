@@ -35,4 +35,9 @@ class PropertyService
     {
         return $this->propertyRepository->getProperties();
     }
+
+    public function getClientProperties(Request $propertyRequest): LengthAwarePaginator
+    {
+        return $this->propertyRepository->getClientProperties($propertyRequest);
+    }
 }

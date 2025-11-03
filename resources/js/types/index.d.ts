@@ -22,6 +22,8 @@ export interface NavItem {
     isActive?: boolean;
     prefetch?: boolean;
     roles: string[];
+    _open: boolean;
+    submenu?: NavItem[];
 }
 
 export interface SharedData {

@@ -18,6 +18,7 @@ use App\Models\PropertyType;
 use App\Models\TransactionType;
 use App\Services\PropertyService;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -159,5 +160,17 @@ class PropertyController extends Controller
             'mortgagees' => $mortgagees,
             'property_conditions' => $property_conditions,
         ]);
+    }
+
+    public function list(Request $request): Response
+    {
+        // Gate::authorize(PermissionsEnum::ViewProperties);
+
+        $properties = $this->propertyService->getClientProperties($request);
+
+        return Inertia::render('dashboard/properties/client-properties', [
+            'properties' => $properties,
+        ]);
+
     }
 }
