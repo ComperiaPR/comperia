@@ -51,8 +51,8 @@ const UpdateProperty = (masterData: MasterDataProps) => {
             // acepta solo dígitos (permite vacío). Si quieres hacerlo obligatorio, valida en otro lugar.
             daily: (v: unknown) => (/^\d*$/.test(String(v)) ? null : 'Daily debe contener solo dígitos.'),
             // zip_code: (v: unknown) => (/^\d*$/.test(String(v)) ? null : 'Zip Code debe contener solo dígitos.'),
-            latitude: (v: unknown) => (/^[\d,-]*$/.test(String(v)) ? null : 'Latitude debe contener solo dígitos y comas.'),
-            longitude: (v: unknown) => (/^[\d,-]*$/.test(String(v)) ? null : 'Longitude debe contener solo dígitos y comas.'),
+            latitude: (v: unknown) => (/^[\d.-]*$/.test(String(v)) ? null : 'Latitude debe contener solo dígitos y puntos.'),
+            longitude: (v: unknown) => (/^[\d.-]*$/.test(String(v)) ? null : 'Longitude debe contener solo dígitos y puntos.'),
             // añadir más reglas si es necesario:
             // page_entry: (v) => v ? null : 'Page entry requerido.',
         }),

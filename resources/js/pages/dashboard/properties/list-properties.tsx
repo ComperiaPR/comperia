@@ -111,6 +111,14 @@ const ListProperties = ({ properties }: { properties: PaginatedData<Property> })
                                                     <DropdownMenuContent className="w-auto" align="start">
                                                         <DropdownMenuItem asChild>
                                                             <Link
+                                                                href={"/properties/view/"+property.id}
+                                                                className="flex items-start justify-start w-full px-3 py-2 text-sm text-green-400 hover:bg-gray-100 bg-default"
+                                                            >
+                                                                <Eye className="h-4 w-4 text-green-400" /> Ver
+                                                            </Link>
+                                                        </DropdownMenuItem>
+                                                        <DropdownMenuItem asChild>
+                                                            <Link
                                                                 href={"/properties/"+property.id}
                                                                 className="flex items-start justify-start w-full px-3 py-2 text-sm text-blue-400 hover:bg-gray-100 bg-default"
                                                             >

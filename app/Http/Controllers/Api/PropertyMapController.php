@@ -8,6 +8,7 @@ use App\Models\Property;
 use App\Models\Municipality;
 use App\Models\PropertyType;
 use App\Models\PropertyStatus;
+use App\Models\TransactionType;
 use Illuminate\Support\Facades\Cache;
 use App\Services\PropertyMapService;
 use Illuminate\Http\Request;
@@ -69,8 +70,9 @@ class PropertyMapController extends Controller
                     ->where('is_active', true)
                     ->orderBy('name')
                     ->get(),
-                'property_statuses' => PropertyStatus::query()
+                'transaction_types' => TransactionType::query()
                     ->select(['id', 'name'])
+                    ->where('is_active', true)
                     ->orderBy('name')
                     ->get(),
             ];
@@ -87,7 +89,7 @@ class PropertyMapController extends Controller
         
         if (file_exists($cacheFile) && (time() - filemtime($cacheFile)) < $cacheTime) {
             $data = json_decode(file_get_contents($cacheFile), true);
-            return response()->json($data);
+            // return response()->json($data);
         }
 
         $properties = Property::query()

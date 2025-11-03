@@ -22,6 +22,7 @@ Route::middleware(['auth', 'verified', 'membership'])->group(function () {
         Route::get('/create-lite', [PropertyController::class, 'createLite'])->name('properties.create-lite');
         Route::post('/', [PropertyController::class, 'store'])->name('properties.store');
         Route::get('/{property}', [PropertyController::class, 'show'])->name('properties.show');
+        Route::get('/view/{property}', [PropertyController::class, 'view'])->name('properties.view');
         Route::put('/{property}', [PropertyController::class, 'update'])->name('properties.update');
         Route::delete('/{property}', [PropertyController::class, 'destroy'])->name('properties.destroy');
     });

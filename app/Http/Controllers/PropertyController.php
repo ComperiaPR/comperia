@@ -139,4 +139,25 @@ class PropertyController extends Controller
         $property->delete();
         return back();
     }
+
+    public function view(Property $property): Response
+    {
+        // Gate::authorize(PermissionsEnum::ViewProperties);
+        $municipalities = Municipality::orderBy('name')->get();
+        $property_statuses = PropertyStatus::orderBy('name')->get();
+        $transaction_types = TransactionType::orderBy('name')->get();
+        $property_types = PropertyType::orderBy('name')->get();
+        $mortgagees = Mortgagee::orderBy('name')->get();
+        $property_conditions = PropertyCondition::orderBy('name')->get();
+
+        return Inertia::render('dashboard/properties/view-property', [
+            'property' => $property,
+            'municipalities' => $municipalities,
+            'property_statuses' => $property_statuses,
+            'transaction_types' => $transaction_types,
+            'property_types' => $property_types,
+            'mortgagees' => $mortgagees,
+            'property_conditions' => $property_conditions,
+        ]);
+    }
 }

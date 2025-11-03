@@ -2,6 +2,9 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Head } from '@inertiajs/react';
 import { MarkerClusterer } from '@googlemaps/markerclusterer';
 import { CustomMultiSelect } from '../../components/CustomMultiSelect';
+import AppLayout from '@/layouts/app-layout';
+import { BreadcrumbItem } from '@/types';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 function useGoogleMaps(apiKey: string) {
   const [loaded, setLoaded] = useState(false);
@@ -367,25 +370,35 @@ export default function MapPreview() {
     })();
   }, [updateMarkers]);
 
+  const breadcrumbs: BreadcrumbItem[] = [
+      { title: 'Usuarios', href: '/admin/users' },
+  ];
   return (
-    <div className="w-full max-w-6xl mx-auto p-4 space-y-4">
-      <Head title="Mapa con filtros" />
-      <MapFilters
-        filters={filters}
-        setFilters={setFilters}
-        onSearch={performSearch}
-        onClear={handleClear}
-        options={options}
-      />
-      <div className="bg-white rounded shadow border p-3">
-        <div className="flex items-center justify-between mb-2">
-          <div className="font-semibold flex items-center gap-2">Mapa</div>
-          <div className="text-xs opacity-70">
-            {loadingProps ? 'Cargando propiedades...' : `Propiedades: ${properties.length}`}
+    <AppLayout breadcrumbs={breadcrumbs}>
+      <div className="w-full max-w-auto mx-auto p-4 space-y-4">
+        <Head title="Mapa con filtros" />
+        <Card className='gap-3'>
+          <CardTitle className="px-4 pt-2 py-0 mb-0 pb-0">Property Search</CardTitle>
+          <CardContent className='px-4 mt-0 pt-0'>
+            <MapFilters
+              filters={filters}
+              setFilters={setFilters}
+              onSearch={performSearch}
+              onClear={handleClear}
+              options={options}
+            />
+          </CardContent>
+        </Card>
+        <div className="bg-white rounded shadow border p-3">
+          <div className="flex items-center justify-between mb-2">
+            <div className="font-semibold flex items-center gap-2">Mapa</div>
+            <div className="text-xs opacity-70">
+              {loadingProps ? 'Cargando propiedades...' : `Propiedades: ${properties.length}`}
+            </div>
           </div>
+          <div id="map" className="w-full" style={{ height: 420 }} />
         </div>
-        <div id="map" className="w-full" style={{ height: 420 }} />
       </div>
-    </div>
+    </AppLayout>
   );
 }

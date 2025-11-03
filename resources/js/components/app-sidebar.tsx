@@ -14,14 +14,14 @@ const mainNavItems: NavItem[] = [
         roles: ['admin', 'super_user', 'client'],
     },
     {
-        title: 'Propiedades',
+        title: 'Property',
         href: '/properties',
         icon: Building,
         roles: ['admin', 'super_user', 'editor', 'client'],
     },
     {
-        title: 'Maps',
-        href: '/maps/preview',
+        title: 'Map Search',
+        href: '/map/preview',
         icon: Building,
         roles: ['admin', 'super_user', 'client'],
     },
