@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\Model;
  * 
  * @property int $id
  * @property string $name
+ * @property int $type
  * @property bool $is_active
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
@@ -28,11 +29,13 @@ class PropertyType extends Model
 	protected $table = 'property_types';
 
 	protected $casts = [
+		'type' => 'int',
 		'is_active' => 'bool'
 	];
 
 	protected $fillable = [
 		'name',
+		'type',
 		'is_active'
 	];
 

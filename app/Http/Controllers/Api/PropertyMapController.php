@@ -98,6 +98,7 @@ class PropertyMapController extends Controller
                 'municipality_id', 'property_type_id', 'transaction_type_id', 
                 'price', 'area_sqr_meter', 'created_at', 'daily'
             ])
+            ->with(['property_type:id,type'])
             ->where('public_web', true)
             ->whereNotNull('latitude')
             ->whereNotNull('longitude')
@@ -113,6 +114,7 @@ class PropertyMapController extends Controller
                 'longitude' => $property->longitude,
                 'municipality_id' => $property->municipality_id,
                 'property_type_id' => $property->property_type_id,
+                'property_type_type' => $property->property_type ? $property->property_type->type : null,
                 'transaction_type_id' => $property->transaction_type_id,
                 'price' => $property->price,
                 'area' => $property->area_sqr_meter,
@@ -169,6 +171,7 @@ class PropertyMapController extends Controller
                 'municipality_id', 'property_type_id', 'transaction_type_id',
                 'price', 'area_sqr_meter', 'created_at', 'daily'
             ])
+            ->with(['propertyType:id,type'])
             ->where('public_web', true)
             ->whereNotNull('latitude')
             ->whereNotNull('longitude')
@@ -241,6 +244,7 @@ class PropertyMapController extends Controller
             'longitude' => $property->longitude,
             'municipality_id' => $property->municipality_id,
             'property_type_id' => $property->property_type_id,
+            'property_type_type' => $property->propertyType ? $property->propertyType->type : null,
             'transaction_type_id' => $property->transaction_type_id,
             'price' => $property->price,
             'area' => $property->area_sqr_meter,
