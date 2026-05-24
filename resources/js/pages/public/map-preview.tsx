@@ -42,6 +42,7 @@ interface ApiProperty {
   unit_number?: string | null;
   municipality_id?: number;
   property_type_id?: number;
+  property_type_type?: number | null;
   transaction_type_id?: number;
   price?: number;
   area?: number;
@@ -49,44 +50,18 @@ interface ApiProperty {
   daily?: number | null;
 }
 
-// Mapeo de property_type_id a iconos
+// Mapeo de property_type.type a iconos
+// 1 = land, 2 = rent, 3 = commercial, 4 = residential
 const PROPERTY_TYPE_ICONS: Record<number, string> = {
-  // commercial.png
-  39: '/images/commercial.png',
-  5: '/images/commercial.png',
-  34: '/images/commercial.png',
-  14: '/images/commercial.png',
-  7: '/images/commercial.png',
-  38: '/images/commercial.png',
-  8: '/images/commercial.png',
-  9: '/images/commercial.png',
-  10: '/images/commercial.png',
-  37: '/images/commercial.png',
-  12: '/images/commercial.png',
-  28: '/images/commercial.png',
-  33: '/images/commercial.png',
-  13: '/images/commercial.png',
-  16: '/images/commercial.png',
-  25: '/images/commercial.png',
-  36: '/images/commercial.png',
-  6: '/images/commercial.png',
-  17: '/images/commercial.png',
-  19: '/images/commercial.png',
-  20: '/images/commercial.png',
-  21: '/images/commercial.png',
-  22: '/images/commercial.png',
-  // residential.png
-  // 25: '/images/residential.png', // Ya está en commercial
-  27: '/images/residential.png',
-  31: '/images/residential.png',
-  // rent.png
-  11: '/images/rent.png'
-  // default: land.png (se manejará en la función)
+  1: '/images/land.png',
+  2: '/images/rent.png',
+  3: '/images/commercial.png',
+  4: '/images/residential.png'
 };
 
-function getIconForPropertyType(propertyTypeId?: number): string {
-  if (!propertyTypeId) return '/images/land.png';
-  return PROPERTY_TYPE_ICONS[propertyTypeId] || '/images/land.png';
+function getIconForPropertyType(propertyTypeType?: number | null): string {
+  if (!propertyTypeType) return '/images/land.png';
+  return PROPERTY_TYPE_ICONS[propertyTypeType] || '/images/land.png';
 }
 
 interface Filters {
@@ -321,39 +296,111 @@ export default function MapPreview() {
     });
     markersRef.current = [];
 
-    markersRef.current = props.map(p => {
-      const iconUrl = getIconForPropertyType(p.property_type_id);
+    // Agrupar propiedades por coordenadas exactas
+    const locationGroups = new Map<string, ApiProperty[]>();
+    props.forEach(p => {
+      const key = `${Number(p.latitude).toFixed(6)},${Number(p.longitude).toFixed(6)}`;
+      if (!locationGroups.has(key)) {
+        locationGroups.set(key, []);
+      }
+      locationGroups.get(key)!.push(p);
+    });
+
+    // Crear marcadores para cada grupo de ubicación
+    locationGroups.forEach((groupProps, locationKey) => {
+      const firstProp = groupProps[0];
+      const isMultiple = groupProps.length > 1;
+      
+      let iconUrl: string;
+      let label: string | undefined;
+      
+      if (isMultiple) {
+        iconUrl = getIconForPropertyType(firstProp.property_type_type);
+        label = String(groupProps.length);
+      } else {
+        iconUrl = getIconForPropertyType(firstProp.property_type_type);
+      }
       
       const marker = new (window as any).google.maps.Marker({
-        position: { lat: Number(p.latitude), lng: Number(p.longitude) },
-        title: `${p.daily}${p.id}` || `Property Marker ${p.id}`,
+        position: { lat: Number(firstProp.latitude), lng: Number(firstProp.longitude) },
+        title: isMultiple ? `${groupProps.length} propiedades` : (firstProp.street || `Propiedad ${firstProp.id}`),
         icon: {
           url: iconUrl,
           scaledSize: new (window as any).google.maps.Size(32, 32),
           anchor: new (window as any).google.maps.Point(16, 32)
-        }
+        },
+        label: isMultiple ? {
+          text: label,
+          color: 'white',
+          fontSize: '12px',
+          fontWeight: 'bold'
+        } : undefined
       });
 
-      // Click izquierdo: Abrir vista completa en nueva pestaña
-      marker.addListener('click', () => {
-        window.open(`/properties/view/${p.id}`, '_blank');
-      });
+        // Click izquierdo
+        marker.addListener('click', () => {
+          if (isMultiple) {
+            const listItems = groupProps.map(p => {
+              const address = p.street ? `${p.street}${p.unit_number ? ' ' + p.unit_number : ''}` : `Propiedad ${p.id}`;
+              const price = p.price ? `$${Number(p.price).toLocaleString()}` : 'N/A';
+              return `
+                <div style="padding: 8px; border-bottom: 1px solid #e5e7eb; cursor: pointer; transition: background-color 0.2s;" 
+                     onmouseover="this.style.backgroundColor='#f3f4f6'" 
+                     onmouseout="this.style.backgroundColor='white'"
+                     onclick="window.open('/properties/view/${p.id}', '_blank')">
+                  <div style="font-weight: 600; color: #1f2937; margin-bottom: 2px;">${address}</div>
+                  <div style="font-size: 12px; color: #6b7280;">ID: ${p.id} • Precio: ${price}</div>
+                  ${p.area ? `<div style="font-size: 12px; color: #6b7280;">Área: ${p.area} m²</div>` : ''}
+                </div>
+              `;
+            }).join('');
+            
+            const content = `
+              <div style="max-width: 300px; max-height: 400px; overflow-y: auto;">
+                <div style="padding: 8px; font-weight: 600; background-color: #f9fafb; border-bottom: 2px solid #e5e7eb; position: sticky; top: 0; z-index: 1;">
+                  ${groupProps.length} propiedades en esta ubicación
+                </div>
+                ${listItems}
+              </div>
+            `;
+            
+            infoWindowRef.current.setContent(content);
+            infoWindowRef.current.open(mapRef.current, marker);
+          } else {
+            window.open(`/properties/view/${firstProp.id}`, '_blank');
+          }
+        });
 
-      // Click derecho: Mostrar InfoWindow con daily
-      marker.addListener('rightclick', (event: any) => {
-        event.domEvent.preventDefault();
-        const dailyValue = p.daily ?? 'N/A';
-        infoWindowRef.current.setContent(`<div style="padding: 4px 8px; font-weight: 500;">${dailyValue} - ${p.id || ''}</div>`);
-        infoWindowRef.current.setPosition(event.latLng);
-        infoWindowRef.current.open(mapRef.current);
-        
-        // Cerrar después de 2 segundos
-        setTimeout(() => {
-          infoWindowRef.current.close();
-        }, 2000);
-      });
+        // Click derecho
+        marker.addListener('rightclick', (event: any) => {
+          event.domEvent.preventDefault();
+          
+          if (isMultiple) {
+            const dailyList = groupProps.map(p => {
+              const dailyValue = p.daily ?? 'N/A';
+              return `<div style="padding: 2px 0;">ID ${p.id}: ${dailyValue}</div>`;
+            }).join('');
+            
+            infoWindowRef.current.setContent(`
+              <div style="padding: 4px 8px; font-weight: 500; max-height: 200px; overflow-y: auto;">
+                <div style="font-weight: 600; margin-bottom: 4px;">Daily valores:</div>
+                ${dailyList}
+              </div>
+            `);
+          } else {
+            const dailyValue = firstProp.daily ?? 'N/A';
+            infoWindowRef.current.setContent(`<div style="padding: 4px 8px; font-weight: 500;">${dailyValue} - ${firstProp.id || ''}</div>`);
+          }
+          
+          infoWindowRef.current.setPosition(event.latLng);
+          infoWindowRef.current.open(mapRef.current);
+          
+          setTimeout(() => {
+            infoWindowRef.current.close();
+          }, 2000);
+        });
 
-      return marker;
+        markersRef.current.push(marker);
     });
 
     if (markersRef.current.length) {
@@ -375,7 +422,7 @@ export default function MapPreview() {
     if (!hasFilters) {
       try {
         setLoadingProps(true);
-        const res = (await fetch('/api/properties/all-locations'));
+        const res = await fetch('/api/properties/all-locations');
         if (!res.ok) throw new Error('Error al cargar propiedades');
         const data = await res.json();
         setProperties(data.properties || []);
@@ -424,6 +471,7 @@ export default function MapPreview() {
         unit_number: p.unit_number,
         municipality_id: p.municipality_id || p.municipality?.id || null,
         property_type_id: p.property_type_id || p.property_type?.id || null,
+        property_type_type: p.property_type_type || p.property_type?.type || null,
         transaction_type_id: p.property_status_id || null,
         price: p.price ?? p.price_sqr_meter ?? null,
         area: p.area ?? p.area_sqr_feet ?? null,
