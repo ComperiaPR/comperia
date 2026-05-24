@@ -19,49 +19,31 @@ interface PageProps<T = {}> {
         user: User;
     };
     roles: Record<string, string>;
-    users: User[];
+    user: User;
     municipalities: Municipality[];
     account_types: Record<string, string>;
     // Other props can be added here
 }
 
-const modelUser = {
-    document: '',
-    first_name: '',
-    last_name: '',
-    email: '',
-    password: '',
-    password_confirmation: '',
-    role: '',
-    company_name: '',
-    address_main: '',
-    address_secondary: '',
-    municipality_id: '',
-    zip_code: '',
-    phone_number: '',
-    cell_number: '',
-    date_start: '',
-    date_finish: '',
-    account_type: ''
-};
-
-const breadcrumbs: BreadcrumbItem[] = [{ title: 'Users', href: '/users' }, { title: 'Create User', href: '/admin/users/create' }];
+const breadcrumbs: BreadcrumbItem[] = [{ title: 'Users', href: '/users' }, { title: 'Edit Users', href: '' }];
 
 export default function CreateUser({
     auth,
     roles,
-    users,
+    user,
     account_types,
     municipalities,
 }: PageProps<{
     roles: Record<string, string>;
-    users: User[];
+    user: User;
     account_types: Record<string, string>;
     municipalities: Municipality[];
 }>) {
     let loading: boolean = false;
-
-    const { data, setData, post, processing, errors } = useForm(modelUser);
+    console.info(user)
+    const { data, setData, put, processing, errors } = useForm(user);
+    // setData('password', '');
+    // setData('password_confirmation', '');
     // console.info('Roles disponibles:', municipalities);
 
     const clearForm = () => {
@@ -87,10 +69,11 @@ export default function CreateUser({
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
         loading = true;
-        post(route('users.store'), {
+        // put('/properties/'+property.id, {
+        put('/users/'+ data.id, {
             onSuccess: () => {
-                toast.success('User created', {
-                    description: 'User data has been successfully saved.',
+                toast.success('User updated', {
+                    description: 'User data has been successfully updated.',
                 });
                 clearForm();
             },
@@ -98,7 +81,7 @@ export default function CreateUser({
                 loading = false;
             },
             onError: () => {
-                toast.error('Error creating user', {
+                toast.error('Error updating user', {
                     description: 'There was a problem saving the user data.',
                 });
                 loading = false;
@@ -108,14 +91,14 @@ export default function CreateUser({
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Create User" />
+            <Head title="Update User" />
 
             <div className="py-4">
                 <div className="mx-auto w-full sm:px-6 lg:px-4">
                     <Card>
                         <CardHeader>
-                            <CardTitle>Create User</CardTitle>
-                            <CardDescription>Complete the form to create a new user.</CardDescription>
+                            <CardTitle>Update User</CardTitle>
+                            <CardDescription>Complete the form to update the user.</CardDescription>
                         </CardHeader>
                         <CardContent>
                             <form onSubmit={submit}>
@@ -191,8 +174,9 @@ export default function CreateUser({
                                                 <Input
                                                     id="password"
                                                     type="password"
-                                                    value={data.password}
-                                                    onChange={(e) => setData('password', e.target.value)}
+                                                    autoComplete="off"
+                                                    value={data.password ?? ''}
+                                                    onChange={(e) => setData('password', e.target.value ?? '')}
                                                     placeholder="Contraseña"
                                                     disabled={processing}
                                                 />
@@ -203,6 +187,7 @@ export default function CreateUser({
                                                 <Input
                                                     id="password_confirmation"
                                                     type="password"
+                                                    autoComplete="off"
                                                     value={data.password_confirmation}
                                                     onChange={(e) => setData('password_confirmation', e.target.value)}
                                                     placeholder="Confirmar Contraseña"
@@ -340,7 +325,7 @@ export default function CreateUser({
 
                                 <div className="mt-4 flex items-center justify-end">
                                     <Button type="submit" disabled={processing}>
-                                        Crear Usuario
+                                        Save
                                     </Button>
                                 </div>
                             </form>

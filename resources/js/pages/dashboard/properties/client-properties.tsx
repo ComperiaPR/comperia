@@ -154,23 +154,7 @@ const ListProperties = ({ properties }: { properties: PaginatedData<Property> })
                                                     <TableCell className='p-0 text-xs'>{property.municipality?.name}</TableCell>
                                                     <TableCell className='p-0 text-xs'>{property.transaction_type?.name}</TableCell>
                                                     <TableCell className='p-0 text-xs'>
-                                                        {property.sale_date
-                                                            ? (() => {
-                                                                let dateObj: Date;
-                                                                if (typeof property.sale_date === 'string') {
-                                                                    dateObj = new Date(property.sale_date);
-                                                                } else if (property.sale_date instanceof Date) {
-                                                                    dateObj = property.sale_date;
-                                                                } else {
-                                                                    return '';
-                                                                }
-                                                                // Formatear a yyyy-MM-dd
-                                                                const yyyy = dateObj.getFullYear();
-                                                                const mm = String(dateObj.getMonth() + 1).padStart(2, '0');
-                                                                const dd = String(dateObj.getDate() + 1).padStart(2, '0');
-                                                                return `${yyyy}-${mm}-${dd}`;
-                                                            })()
-                                                            : ''}
+                                                        {property.sale_date ? new Date(property.sale_date).toISOString().split('T')[0] : ''}
                                                     </TableCell>
                                                     <TableCell className='p-0 text-xs'>{property.track_no}</TableCell>
                                                     <TableCell className='p-0 text-xs'>{property.development}</TableCell>

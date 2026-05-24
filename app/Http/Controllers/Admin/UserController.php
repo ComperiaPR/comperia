@@ -6,8 +6,10 @@ use App\Enums\RolesEnum;
 use App\Enums\UserTypeEnum;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\UserStoreRequest;
+use App\Http\Requests\Admin\UserUpdateRequest;
 use App\Models\Municipality;
 use App\Models\User;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -20,13 +22,16 @@ class UserController extends Controller
     public function index(Request $request): Response
     {
         
-        $query = User::with(['roles']);
+        $query = User::with(['roles','municipality']);
 
         // Filtro por búsqueda de texto (nombre o email)
         if ($request->filled('search')) {
             $search = $request->input('search');
             $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
+                $q->where('first_name', 'like', "%{$search}%")
+                    ->orWhere('last_name', 'like', "%{$search}%")
+                    ->orWhere('company_name', 'like', "%{$search}%")
+                    ->orWhere('username', 'like', "%{$search}%")
                     ->orWhere('email', 'like', "%{$search}%");
             });
         }
@@ -62,17 +67,30 @@ class UserController extends Controller
             ->through(function ($user) {
                 return [
                     'id' => $user->id,
-                    'name' => $user->name,
+                    'first_name' => $user->first_name,
+                    'last_name' => $user->last_name,
+                    'company_name' => $user->company_name,
+                    'address_main' => $user->address_main,
+                    'address_secondary' => $user->address_secondary,
+                    'municipality' => $user->municipality ? [
+                        'id' => $user->municipality->id,
+                        'name' => $user->municipality->name,
+                    ] : null,
+                    'cell_number' => $user->cell_number,
+                    'phone_number' => $user->phone_number,
                     'email' => $user->email,
-                    'is_active' => $user->is_active,
+                    'account_type' => $user->account_type,
                     'email_verified_at' => $user->email_verified_at,
                     'roles' => $user->roles->map(function ($role) {
                         return [
                             'id' => $role->id,
                             'name' => $role->name,
-                            'label' => $role->name,
+                            'label' => RolesEnum::labels()[$role->name] ?? $role->name,
                         ];
                     }),
+                    'is_active' => $user->is_active,
+                    'date_start' => $user->date_start ? $user->date_start->toDateString() : null,
+                    'date_finish' => $user->date_finish ? $user->date_finish->toDateString() : null,
                 ];
             });
 
@@ -135,20 +153,76 @@ class UserController extends Controller
     }
 
     // Muestra un usuario específico
-    public function show($id)
+    public function show(User $user) : Response
     {
-        // ...implementación...
+        // Gate::authorize(PermissionsEnum::CreateProperties);
+        $municipalities = Municipality::get();
+        $user->role = $user->getRoleNames()[0];
+
+        return Inertia::render('admin/users/update',[
+            'user' => $user,
+            'municipalities' => $municipalities,
+            'roles' => RolesEnum::labels(),
+            'account_types' => UserTypeEnum::labels(),
+        ]);
     }
 
     // Actualiza un usuario específico
-    public function update(Request $request, $id)
+    public function update(User $user, UserUpdateRequest $request)
     {
-        // ...implementación...
+        DB::beginTransaction();
+        try {
+
+            $user->update([
+                'document' => $request->document,
+                'first_name' => $request->first_name,
+                'last_name' => $request->last_name,
+                'company_name' => $request->company_name,
+                'municipality_id' => $request->municipality_id,
+                'zip_code' => $request->zip_code,
+                'account_type' => $request->account_type,
+                'email' => $request->email,
+                'username' => $request->email,
+                'password' => Hash::make($request->password),
+                'address_main' => $request->address_main,
+                'address_secondary' => $request->address_secondary,
+                'phone_number' => $request->phone_number,
+                'cell_number' => $request->cell_number,
+                'date_start' => $request->date_start,
+                'date_finish' => $request->date_finish,
+            ]);
+
+
+            // Actualizar rol si cambió
+            if ($request->filled('role')) {
+                $user->syncRoles([$request->input('role')]);
+            }
+
+            DB::commit();
+
+            return redirect()->route('users.index');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->withErrors(['error' => $e->getMessage()]);
+        }
     }
 
     // Elimina un usuario específico
     public function destroy($id)
     {
         // ...implementación...
+    }
+
+    public function toggleStatus(User $user): RedirectResponse
+    {
+        try {
+            $user->update(['is_active' => !$user->is_active]);
+
+            $message = $user->is_active ? 'Usuario habilitado con éxito.' : 'Usuario deshabilitado con éxito.';
+
+            return redirect()->route('admin.users.index')->with('success', $message);
+        } catch (\Throwable $th) {
+            return back()->withErrors(['error' => 'No se pudo cambiar el estado del usuario.']);
+        }
     }
 }

@@ -6,8 +6,10 @@ namespace App\Http\Controllers;
 
 use App\DTOs\PropertyCreateDTO;
 use App\DTOs\PropertyUpdateDTO;
+use App\Exports\PropertiesExport;
 use App\Http\Requests\PropertyStoreRequest;
 use App\Http\Requests\PropertyUpdateRequest;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use App\Http\Resources\PropertyResource;
 use App\Models\Mortgagee;
 use App\Models\Municipality;
@@ -21,6 +23,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
+use Maatwebsite\Excel\Facades\Excel;
 
 class PropertyController extends Controller
 {
@@ -172,5 +175,15 @@ class PropertyController extends Controller
             'properties' => $properties,
         ]);
 
+    }
+
+    public function exportProperties(Request $request): BinaryFileResponse
+    {
+        $filters = $request->only(['search', 'batch']);
+
+        $fileName = 'properties_' . date('Y-m-d_H-i-s') . '.xlsx';
+        $file = new PropertiesExport($filters);
+        // dd('here', $file);
+        return Excel::download($file, $fileName);
     }
 }

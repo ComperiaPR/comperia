@@ -326,7 +326,7 @@ export default function MapPreview() {
       
       const marker = new (window as any).google.maps.Marker({
         position: { lat: Number(p.latitude), lng: Number(p.longitude) },
-        title: p.street || `Propiedad ${p.id}`,
+        title: `${p.daily}${p.id}` || `Property Marker ${p.id}`,
         icon: {
           url: iconUrl,
           scaledSize: new (window as any).google.maps.Size(32, 32),
@@ -464,7 +464,7 @@ export default function MapPreview() {
   }, [updateMarkers]);
 
   const breadcrumbs: BreadcrumbItem[] = [
-      { title: 'Usuarios', href: '/admin/users' },
+      { title: 'Map Search', href: '/map/preview' },
   ];
   return (
     <AppLayout breadcrumbs={breadcrumbs}>

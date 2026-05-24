@@ -4,7 +4,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import AppLayout from '@/layouts/app-layout';
 import { PaginatedData, type BreadcrumbItem } from '@/types';
 import { Head, Link, router } from '@inertiajs/react';
-import { Building2, Edit, Eye, ListOrdered, MoreVertical, Trash2 } from 'lucide-react';
+import { Building2, Edit, Eye, FileSpreadsheet, ListOrdered, MoreVertical, Trash2 } from 'lucide-react';
 import { Property } from '@/types/property';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -45,19 +45,17 @@ const ListProperties = ({ properties }: { properties: PaginatedData<Property> })
         setModalOpen(true);
     };
 
+    const exportToExcel = () => {
+        const url = route('properties.export-properties');
+        window.open(url, '_blank');
+    }
+
     return (
         <div className="flex h-full flex-1 flex-col items-center gap-4 rounded-xl p-4">
             <Card className="w-full border-slate-200 shadow-sm">
                 <CardHeader className="flex flex-row items-center justify-between">
                     <div>
                         <CardTitle>Property Management</CardTitle>
-                        {/* <CardDescription>
-                            {properties.total > 0 ? (
-                                <>Mostrando {properties.total} propiedad{properties.total !== 1 ? 'es' : ''} registrada{properties.total !== 1 ? 's' : ''}</>
-                            ) : (
-                                'No se encontraron propiedades'
-                            )}
-                        </CardDescription> */}
                     </div>
                     <div>
                         <Link
@@ -72,6 +70,13 @@ const ListProperties = ({ properties }: { properties: PaginatedData<Property> })
                         >
                             Create Preliminary
                         </Link>
+                        <Button
+                            variant="outline"
+                            onClick={exportToExcel}
+                            className='ms-2 inline-flex items-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-white shadow transition-colors hover:bg-primary/90'
+                        >
+                            <span>Export to Excel</span>
+                        </Button>
                     </div>
                 </CardHeader>
                 <CardContent className="space-y-">
@@ -114,7 +119,7 @@ const ListProperties = ({ properties }: { properties: PaginatedData<Property> })
                                                                 href={"/properties/view/"+property.id}
                                                                 className="flex items-start justify-start w-full px-3 py-2 text-sm text-green-400 hover:bg-gray-100 bg-default"
                                                             >
-                                                                <Eye className="h-4 w-4 text-green-400" /> Ver
+                                                                <Eye className="h-4 w-4 text-green-400" /> View
                                                             </Link>
                                                         </DropdownMenuItem>
                                                         <DropdownMenuItem asChild>
@@ -122,7 +127,7 @@ const ListProperties = ({ properties }: { properties: PaginatedData<Property> })
                                                                 href={"/properties/"+property.id}
                                                                 className="flex items-start justify-start w-full px-3 py-2 text-sm text-blue-400 hover:bg-gray-100 bg-default"
                                                             >
-                                                                <Edit className="h-4 w-4 text-blue-400" /> Editar
+                                                                <Edit className="h-4 w-4 text-blue-400" /> Edit
                                                             </Link>
                                                         </DropdownMenuItem>
                                                         <DropdownMenuItem asChild>
@@ -131,7 +136,7 @@ const ListProperties = ({ properties }: { properties: PaginatedData<Property> })
                                                                 onClick={() => handleDelete(property.id ?? 0)}
                                                                 className="flex items-start justify-start w-full px-4 py-2 text-sm text-red-600 hover:bg-gray-100 bg-default"
                                                             >
-                                                               <Trash2 className="h-4 w-4 text-red-600" /> Eliminar
+                                                               <Trash2 className="h-4 w-4 text-red-600" /> Delete
                                                             </Button>
                                                         </DropdownMenuItem>
                                                         <DropdownMenuItem asChild>
@@ -171,23 +176,7 @@ const ListProperties = ({ properties }: { properties: PaginatedData<Property> })
                                                 <TableCell className="p-0 text-xs">{property.property_type?.name}</TableCell>
                                                 <TableCell className="p-0 text-xs">{property.transaction_type?.name}</TableCell>
                                                 <TableCell className='p-0 text-xs'>
-                                                    {property.sale_date
-                                                        ? (() => {
-                                                            let dateObj: Date;
-                                                            if (typeof property.sale_date === 'string') {
-                                                                dateObj = new Date(property.sale_date);
-                                                            } else if (property.sale_date instanceof Date) {
-                                                                dateObj = property.sale_date;
-                                                            } else {
-                                                                return '';
-                                                            }
-                                                            // Formatear a yyyy-MM-dd
-                                                            const yyyy = dateObj.getFullYear();
-                                                            const mm = String(dateObj.getMonth() + 1).padStart(2, '0');
-                                                            const dd = String(dateObj.getDate() + 1).padStart(2, '0');
-                                                            return `${yyyy}-${mm}-${dd}`;
-                                                        })()
-                                                        : ''}
+                                                        {property.sale_date ? new Date(property.sale_date).toISOString().split('T')[0] : ''}
                                                 </TableCell>
                                                 <TableCell className='p-0 text-xs'>{property.buyer}</TableCell>
                                                 <TableCell className='p-0 text-xs'>

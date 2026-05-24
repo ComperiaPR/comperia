@@ -27,7 +27,7 @@ return new class extends Migration
             $table->string('cell_number', 25)->nullable()->comment('Número de celular');
             $table->string('password', 255)->comment('Contraseña');
             $table->timestamp('email_verified_at')->nullable();
-            $table->enum('account_type', ['personal', 'business'])->comment('Tipo de cuenta')->nullable();
+            $table->enum('account_type', ['individual', 'corporate'])->comment('Tipo de cuenta')->nullable();
             $table->boolean('terms')->default(true)->comment('Acepta los términos');
             $table->boolean('is_active')->default(true)->comment('Estado del usuario');
             $table->dateTime('date_start')->nullable()->comment('Fecha de inicio membresia');

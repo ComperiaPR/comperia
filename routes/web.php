@@ -21,6 +21,7 @@ Route::middleware(['auth', 'verified', 'membership'])->group(function () {
         Route::get('/view/list', [PropertyController::class, 'list'])->name('properties.list');
         Route::get('/create', [PropertyController::class, 'create'])->name('properties.create');
         Route::get('/create-lite', [PropertyController::class, 'createLite'])->name('properties.create-lite');
+        Route::get('/export-properties', [PropertyController::class, 'exportProperties'])->name('properties.export-properties');
         Route::post('/', [PropertyController::class, 'store'])->name('properties.store');
         Route::get('/{property}', [PropertyController::class, 'show'])->name('properties.show');
         Route::get('/view/{property}', [PropertyController::class, 'view'])->name('properties.view');
@@ -34,6 +35,7 @@ Route::middleware(['auth', 'verified', 'membership'])->group(function () {
         Route::get('/{user}', [UserController::class, 'show'])->name('users.show');
         Route::put('/{user}', [UserController::class, 'update'])->name('users.update');
         Route::delete('/{user}', [UserController::class, 'destroy'])->name('users.destroy');
+        Route::patch('/{user}/toggle-status', [UserController::class, 'toggleStatus'])->name('users.toggle-status');
     });
     // Map preview page (public)
     Route::get('/map/preview', function () {

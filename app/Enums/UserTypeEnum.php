@@ -6,14 +6,14 @@ namespace App\Enums;
 
 enum UserTypeEnum: string
 {
-    case Personal = 'personal';
-    case Business = 'business';
+    case Individual = 'individual';
+    case Corporate = 'corporate';
 
     public static function labels(): array
     {
         return [
-            self::Personal->value => 'Personal',
-            self::Business->value => 'Business',
+            self::Individual->value => 'Individual',
+            self::Corporate->value => 'Corporate',
         ];
     }
 

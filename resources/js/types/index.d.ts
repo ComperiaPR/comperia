@@ -1,5 +1,6 @@
 import { LucideIcon } from 'lucide-react';
 import type { Config } from 'ziggy-js';
+import { Municipality } from './master-data';
 
 export interface Auth {
     user: User;
@@ -46,6 +47,13 @@ export interface User {
     address_main: string;
     address_secondary: string;
     municipality_id: string | null;
+    municipality: Municipality | null;
+    roles: Array<{
+        id: number;
+        name: string;
+        label: string;
+    }> | [];
+    is_active: boolean;
     zip_code: string;
     phone_number: string;
     cell_number: string;
