@@ -4,14 +4,12 @@ declare(strict_types=1);
 
 namespace App\Repositories;
 
+use App\Models\Municipality;
 use App\Models\Property;
+use App\Models\PropertyType;
+use App\Models\TransactionType;
 use App\Repositories\Contracts\PropertyMapInterface;
-use Illuminate\Contracts\Pagination\LengthAwarePaginator;
-use Illuminate\Http\Request;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
-
-// use Illuminate\Support\Facades\Request;
 
 class PropertyMapRepository implements PropertyMapInterface
 {
@@ -67,99 +65,174 @@ class PropertyMapRepository implements PropertyMapInterface
             ->get();
     }
 
-    public function clearCache(): void
+    public function getMaxUpdatedAt(): ?string
     {
-        // Implement the logic to clear the cache
+        return Property::query()
+            ->publicWeb()
+            ->whereNotNull('latitude')
+            ->whereNotNull('longitude')
+            ->max('updated_at');
     }
 
-    public function search(array $validated): LengthAwarePaginator
+    public function getFilters(): array
     {
-        $query = Property::query()
+        return [
+            'municipalities' => Municipality::query()
+                ->select(['id', 'name'])
+                ->where('is_active', true)
+                ->orderBy('name')
+                ->get(),
+            'property_types' => PropertyType::query()
+                ->select(['id', 'name'])
+                ->where('is_active', true)
+                ->orderBy('name')
+                ->get(),
+            'transaction_types' => TransactionType::query()
+                ->select(['id', 'name'])
+                ->where('is_active', true)
+                ->orderBy('name')
+                ->get(),
+        ];
+    }
+
+    public function getAllLocations(int $limit = 10000): array
+    {
+        return Property::query()
             ->select([
-                'id', 'street', 'unit_number', 'municipality_id', 'latitude', 'longitude',
-                'sale_date', 'price_sqr_meter', 'area_sqr_feet', 'property_type_id', 'property_status_id', 'updated_at', 'daily'
+                'id', 'street', 'unit_number', 'latitude', 'longitude', 
+                'municipality_id', 'property_type_id', 'transaction_type_id', 
+                'price', 'area_sqr_meter', 'created_at', 'daily'
             ])
+            ->with(['property_type:id,type'])
             ->where('public_web', true)
             ->whereNotNull('latitude')
             ->whereNotNull('longitude')
-            ->with([
-                'municipality:id,name',
-                'property_type:id,name',
-                'property_status:id,name',
-            ]);
+            ->where('latitude', '!=', '')
+            ->where('longitude', '!=', '')
+            ->whereRaw('CAST(latitude AS DECIMAL(10,6)) > 0')
+            ->orderBy('created_at', 'desc')
+            ->limit($limit)
+            ->get()
+            ->map(fn($property) => [
+                'id' => $property->id,
+                'street' => $property->street,
+                'unit_number' => $property->unit_number,
+                'latitude' => $property->latitude,
+                'longitude' => $property->longitude,
+                'municipality_id' => $property->municipality_id,
+                'property_type_id' => $property->property_type_id,
+                'property_type_type' => $property->property_type ? $property->property_type->type : null,
+                'transaction_type_id' => $property->transaction_type_id,
+                'price' => $property->price,
+                'area' => $property->area_sqr_meter,
+                'created_at' => $property->created_at ? $property->created_at->toDateString() : null,
+                'daily' => $property->daily,
+            ])
+            ->toArray();
+    }
+
+    public function clearCache(): void
+    {
+        $cacheFile = storage_path('app/cache/map_locations.json');
+        if (file_exists($cacheFile)) {
+            unlink($cacheFile);
+        }
+
+        Cache::forget('map:all_locations');
+        Cache::forget('map:filters');
+        Cache::increment('map:version');
+    }
+
+    public function search(array $validated): array
+    {
+        $query = Property::query()
+            ->with(['property_type:id,type'])
+            ->where('public_web', true)
+            ->whereNotNull('latitude')
+            ->whereNotNull('longitude')
+            ->where('latitude', '!=', '')
+            ->where('longitude', '!=', '');
 
         if (!empty($validated['q'])) {
             $q = $validated['q'];
             $query->where(function ($sub) use ($q) {
                 $sub->where('street', 'like', "%{$q}%")
                     ->orWhere('unit_number', 'like', "%{$q}%")
-                    ->orWhere('cadastre', 'like', "%{$q}%")
-                    ->orWhere('registry', 'like', "%{$q}%");
+                    ->orWhere('cadastral_number', 'like', "%{$q}%")
+                    ->orWhere('registry_number', 'like', "%{$q}%");
             });
         }
 
         if (!empty($validated['municipality_id'])) {
-            $query->where('municipality_id', (int) $validated['municipality_id']);
+            $query->whereIn('municipality_id', $this->normalizeArrayParam($validated['municipality_id']));
         }
+
         if (!empty($validated['property_type_id'])) {
-            $query->where('property_type_id', (int) $validated['property_type_id']);
-        }
-        if (!empty($validated['property_status_id'])) {
-            $query->where('property_status_id', (int) $validated['property_status_id']);
+            $query->whereIn('property_type_id', $this->normalizeArrayParam($validated['property_type_id']));
         }
 
-        // Date range filter
+        if (!empty($validated['transaction_type_id'])) {
+            $query->whereIn('transaction_type_id', $this->normalizeArrayParam($validated['transaction_type_id']));
+        }
+
         if (!empty($validated['date_from'])) {
-            $query->where('sale_date', '>=', $validated['date_from']);
-        }
-        if (!empty($validated['date_to'])) {
-            $query->where('sale_date', '<=', $validated['date_to']);
+            $query->whereDate('created_at', '>=', $validated['date_from']);
         }
 
-        // Price range filter
+        if (!empty($validated['date_to'])) {
+            $query->whereDate('created_at', '<=', $validated['date_to']);
+        }
+
         if (!empty($validated['price_min'])) {
-            $query->where('price_sqr_meter', '>=', (float) $validated['price_min']);
+            $query->where('price', '>=', (float)$validated['price_min']);
         }
         if (!empty($validated['price_max'])) {
-            $query->where('price_sqr_meter', '<=', (float) $validated['price_max']);
+            $query->where('price', '<=', (float)$validated['price_max']);
         }
-
-        // Area range filter
         if (!empty($validated['area_min'])) {
-            $query->where('area_sqr_feet', '>=', (float) $validated['area_min']);
+            $query->where('area_sqr_meter', '>=', (float)$validated['area_min']);
         }
         if (!empty($validated['area_max'])) {
-            $query->where('area_sqr_feet', '<=', (float) $validated['area_max']);
+            $query->where('area_sqr_meter', '<=', (float)$validated['area_max']);
         }
 
-        // Optional bounds filter (when toggled from UI)
-        if (isset($validated['north'], $validated['south'], $validated['east'], $validated['west'])) {
-            $north = (float) $validated['north'];
-            $south = (float) $validated['south'];
-            $east = (float) $validated['east'];
-            $west = (float) $validated['west'];
-            $query->inBounds($north, $south, $east, $west);
-        }
+        $perPage = $validated['per_page'] ?? 1000;
+        $properties = $query->limit($perPage)->get();
 
-        $results = $query
-            ->orderByDesc('updated_at')
-            ->paginate(15)
-            ->withQueryString();
-
-        return $results;
+        return $properties->map(fn($property) => [
+            'id' => $property->id,
+            'street' => $property->street,
+            'unit_number' => $property->unit_number,
+            'latitude' => $property->latitude,
+            'longitude' => $property->longitude,
+            'municipality_id' => $property->municipality_id,
+            'property_type_id' => $property->property_type_id,
+            'property_type_type' => $property->property_type ? $property->property_type->type : null,
+            'transaction_type_id' => $property->transaction_type_id,
+            'price' => $property->price,
+            'area' => $property->area_sqr_meter,
+            'created_at' => $property->created_at ? $property->created_at->toDateString() : null,
+            'daily' => $property->daily,
+        ])->values()->toArray();
     }
 
-    private function getLimitByZoom(int $zoom): int
+    private function normalizeArrayParam($param): array
     {
-        if ($zoom <= 10) {
-            return 1000;
-        } elseif ($zoom <= 13) {
-            return 5000;
-        } elseif ($zoom <= 16) {
-            return 15000;
-        } else {
-            return 50000; // Aumentado para mostrar más propiedades en zoom cercano
+        if (is_array($param)) {
+            return array_filter(array_map('intval', $param));
         }
+
+        if (is_string($param)) {
+            if (strpos($param, ',') !== false) {
+                return array_filter(array_map('intval', explode(',', $param)));
+            }
+            return [(int)$param];
+        }
+
+        if (is_numeric($param)) {
+            return [(int)$param];
+        }
+
+        return [];
     }
 }
-    

@@ -23,9 +23,12 @@ class PropertyMapSearchRequest extends FormRequest
     {
         return [
             'q' => 'nullable|string|max:255',
-            'municipality_id' => 'nullable|integer|exists:municipalities,id',
-            'property_type_id' => 'nullable|integer|exists:property_types,id',
-            'property_status_id' => 'nullable|integer|exists:property_statuses,id',
+            'municipality_id' => 'nullable|array',
+            'municipality_id.*' => 'integer|exists:municipalities,id',
+            'property_type_id' => 'nullable|array',
+            'property_type_id.*' => 'integer|exists:property_types,id',
+            'transaction_type_id' => 'nullable|array',
+            'transaction_type_id.*' => 'integer|exists:transaction_types,id',
             'north' => 'nullable|numeric|between:-90,90',
             'south' => 'nullable|numeric|between:-90,90',
             'east' => 'nullable|numeric|between:-180,180',
@@ -36,9 +39,11 @@ class PropertyMapSearchRequest extends FormRequest
             'price_max' => 'nullable|numeric|min:0|gte:price_min',
             'area_min' => 'nullable|numeric|min:0',
             'area_max' => 'nullable|numeric|min:0|gte:area_min',
+            'per_page' => 'nullable|integer|min:1|max:100',
             'page' => 'nullable|integer|min:1',
         ];
     }
+
 
     public function messages(): array
     {

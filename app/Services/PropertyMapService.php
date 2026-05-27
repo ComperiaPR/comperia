@@ -4,12 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
-use App\Models\Property;
 use App\Repositories\Contracts\PropertyMapInterface;
-use Illuminate\Http\Request;
-use Illuminate\Pagination\LengthAwarePaginator;
-use Illuminate\Support\Collection;
-// use Illuminate\Support\Facades\Request;
 
 class PropertyMapService
 {
@@ -25,6 +20,21 @@ class PropertyMapService
         return $this->propertyRepository->inBounds($bounds);
     }
 
+    public function getMaxUpdatedAt(): ?string
+    {
+        return $this->propertyRepository->getMaxUpdatedAt();
+    }
+
+    public function getFilters(): array
+    {
+        return $this->propertyRepository->getFilters();
+    }
+
+    public function getAllLocations(int $limit = 10000): array
+    {
+        return $this->propertyRepository->getAllLocations($limit);
+    }
+
     public function lastUpdate(int $limit)
     {
         return $this->propertyRepository->lastUpdate($limit);
@@ -35,7 +45,7 @@ class PropertyMapService
         $this->propertyRepository->clearCache();
     }
 
-    public function search(array $query): LengthAwarePaginator
+    public function search(array $query): array
     {
         return $this->propertyRepository->search($query);
     }
