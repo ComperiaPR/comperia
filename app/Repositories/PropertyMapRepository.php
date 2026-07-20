@@ -94,6 +94,7 @@ class PropertyMapRepository implements PropertyMapInterface
                 $sub->where('street', 'like', "%{$q}%")
                     ->orWhere('unit_number', 'like', "%{$q}%")
                     ->orWhere('cadastre', 'like', "%{$q}%")
+                    ->orWhere('id', 'like', "%{$q}%")
                     ->orWhere('registry', 'like', "%{$q}%");
             });
         }

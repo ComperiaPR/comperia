@@ -185,8 +185,9 @@ class PropertyMapController extends Controller
             $query->where(function ($q) use ($searchTerm) {
                 $q->where('street', 'like', "%{$searchTerm}%")
                   ->orWhere('unit_number', 'like', "%{$searchTerm}%")
-                  ->orWhere('cadastral_number', 'like', "%{$searchTerm}%")
-                  ->orWhere('registry_number', 'like', "%{$searchTerm}%");
+                  ->orWhere('cadastre', 'like', "%{$searchTerm}%")
+                  ->orWhere('id', 'like', "%{$searchTerm}%")
+                  ->orWhere('registry', 'like', "%{$searchTerm}%");
             });
         }
 
