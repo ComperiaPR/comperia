@@ -48,14 +48,13 @@ Route::middleware(['auth'])->group(function () {
 });
 
 
-// Lightweight API endpoints for the map
+// Map Routes
 Route::prefix('api')->middleware(['auth','membership'])->group(function () {
     Route::get('/properties/in-bounds', [PropertyMapController::class, 'inBounds']);
     Route::get('/properties/all-locations', [PropertyMapController::class, 'allLocations']);
     Route::get('/properties/last-update', [PropertyMapController::class, 'lastUpdate']);
     Route::get('/properties/filters', [PropertyMapController::class, 'filters']);
     Route::get('/properties/search', [PropertyMapController::class, 'search']);
-    // Protect clearCache behind auth if needed
     Route::post('/properties/clear-cache', [PropertyMapController::class, 'clearCache']);
 });
 
