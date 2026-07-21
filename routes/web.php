@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\PropertyController;
+use App\Http\Controllers\PropertyExportController;
+use App\Http\Controllers\ContactMessageController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Api\PropertyMapController;
 use App\Http\Controllers\Paypal\PayPalController;
@@ -11,20 +13,32 @@ Route::get('/', function () {
     return Inertia::render('public/welcome');
 })->name('home');
 
+// Accesible tanto para visitantes públicos como para usuarios autenticados
+Route::post('/contact-messages', [ContactMessageController::class, 'store'])->name('contact-messages.store');
+
 Route::middleware(['auth', 'verified', 'membership'])->group(function () {
     Route::get('dashboard', function () {
-        return Inertia::render('dashboard');
+        $lastPayment = auth()->user()->user_payments()->with('plan')->latest('date_finish')->first();
+
+        return Inertia::render('dashboard', [
+            'lastPayment' => $lastPayment,
+        ]);
     })->name('dashboard');
 
     Route::prefix('properties')->group(function () {
         Route::get('/', [PropertyController::class, 'index'])->name('properties.index');
         Route::get('/view/list', [PropertyController::class, 'list'])->name('properties.list');
+        Route::get('/basic-search', [PropertyController::class, 'basicSearch'])->name('properties.basic-search');
         Route::get('/create', [PropertyController::class, 'create'])->name('properties.create');
         Route::get('/create-lite', [PropertyController::class, 'createLite'])->name('properties.create-lite');
         Route::get('/export-properties', [PropertyController::class, 'exportProperties'])->name('properties.export-properties');
         Route::post('/', [PropertyController::class, 'store'])->name('properties.store');
         Route::get('/{property}', [PropertyController::class, 'show'])->name('properties.show');
         Route::get('/view/{property}', [PropertyController::class, 'view'])->name('properties.view');
+        Route::get('/export/pdf/{property}', [PropertyExportController::class, 'pdf'])->name('properties.export.pdf');
+        Route::get('/export/excel/{property}', [PropertyExportController::class, 'excel'])->name('properties.export.excel');
+        Route::get('/export/word/{property}', [PropertyExportController::class, 'word'])->name('properties.export.word');
+        Route::post('/{property}/improvements', [ContactMessageController::class, 'storeImprovement'])->name('properties.improvements.store');
         Route::put('/{property}', [PropertyController::class, 'update'])->name('properties.update');
         Route::delete('/{property}', [PropertyController::class, 'destroy'])->name('properties.destroy');
     });
@@ -36,11 +50,21 @@ Route::middleware(['auth', 'verified', 'membership'])->group(function () {
         Route::put('/{user}', [UserController::class, 'update'])->name('users.update');
         Route::delete('/{user}', [UserController::class, 'destroy'])->name('users.destroy');
         Route::patch('/{user}/toggle-status', [UserController::class, 'toggleStatus'])->name('users.toggle-status');
+        Route::get('/{user}/payments', [UserController::class, 'payments'])->name('users.payments');
+    });
+    Route::prefix('contacts')->group(function () {
+        Route::get('/', [ContactMessageController::class, 'index'])->name('contacts.index');
     });
     // Map preview page (public)
     Route::get('/map/preview', function () {
         return Inertia::render('public/map-preview');
     })->name('map.preview');
+    Route::get('/about', function () {
+        return Inertia::render('about');
+    })->name('about');
+    Route::get('/geolocation', function () {
+        return Inertia::render('geolocation');
+    })->name('geolocation');
 });
 Route::middleware(['auth'])->group(function () {
     Route::post('/paypal/create-order', [PayPalController::class, 'createOrder']);

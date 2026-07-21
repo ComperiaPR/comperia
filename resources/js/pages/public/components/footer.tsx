@@ -1,15 +1,21 @@
+import { useState } from 'react';
 import { Link } from '@inertiajs/react';
-import { Home, Mail, Phone, MapPin } from "lucide-react"
+import { usePage } from '@inertiajs/react';
+import { Mail, Phone, MapPin } from "lucide-react"
+import ContactMessageModal from '@/components/contact-message-modal';
+import { type SharedData } from '@/types';
 
 export function Footer() {
+  const { auth } = usePage<SharedData>().props;
+  const [contactOpen, setContactOpen] = useState(false)
+
   return (
     <footer id="contact" className="bg-muted/50 border-t">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div className="space-y-4">
-            <div className="flex items-center space-x-2">
-              <Home className="h-6 w-6 text-pr-blue" />
-              <span className="text-lg font-bold">Comperia</span>
+            <div className="flex items-center w-fit">
+              <img src="/images/logo.png" alt="Comperia" className="h-6 w-auto object-contain" />
             </div>
             <p className="text-sm text-muted-foreground max-w-xs">
               La plataforma más completa de información inmobiliaria de Puerto Rico.
@@ -83,6 +89,15 @@ export function Footer() {
                 <MapPin className="h-4 w-4 text-pr-turquoise" />
                 <span className="text-muted-foreground">San Juan, Puerto Rico</span>
               </li>
+              <li className="pt-1">
+                <button
+                  type="button"
+                  onClick={() => setContactOpen(true)}
+                  className="text-sm font-medium text-pr-blue hover:underline cursor-pointer"
+                >
+                  Send us a message
+                </button>
+              </li>
             </ul>
           </div>
         </div>
@@ -101,6 +116,13 @@ export function Footer() {
           </div>
         </div>
       </div>
+
+      <ContactMessageModal
+        isOpen={contactOpen}
+        onClose={() => setContactOpen(false)}
+        defaultName={auth.user ? `${auth.user.first_name ?? ''} ${auth.user.last_name ?? ''}`.trim() : ''}
+        defaultEmail={auth.user?.email ?? ''}
+      />
     </footer>
   )
 }

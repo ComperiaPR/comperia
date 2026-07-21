@@ -8,11 +8,15 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\UserStoreRequest;
 use App\Http\Requests\Admin\UserUpdateRequest;
 use App\Models\Municipality;
+use App\Models\Plan;
 use App\Models\User;
+use App\Models\UserPayment;
+use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use Inertia\Response;
 use Inertia\Inertia;
 
@@ -111,6 +115,7 @@ class UserController extends Controller
             'municipalities' => $municipalities,
             'roles' => RolesEnum::labels(),
             'account_types' => UserTypeEnum::labels(),
+            'plans' => Plan::where('is_active', true)->orderBy('name')->get(['id', 'name', 'price', 'days']),
         ]);
     }
 
@@ -137,11 +142,17 @@ class UserController extends Controller
                 'address_secondary' => $request->address_secondary,
                 'phone_number' => $request->phone_number,
                 'cell_number' => $request->cell_number,
+                'date_start' => $request->date_start,
+                'date_finish' => $request->date_finish,
                 'email_verified_at' => now(),
                 'is_active' => true,
             ]);
 
             $user->assignRole($request->role);
+
+            if ($request->role === RolesEnum::Client->value && $request->filled('plan_id')) {
+                $this->registerPayment($user, $request->plan_id, $request->date_start, $request->date_finish);
+            }
 
             DB::commit();
 
@@ -152,6 +163,41 @@ class UserController extends Controller
         }
     }
 
+    /**
+     * Registra un nuevo pago manual (creado desde el panel de administración,
+     * no vía PayPal) y sincroniza la ventana de membresía del usuario.
+     * Si no se indican fechas, la fecha de inicio continúa desde el fin del
+     * último pago vigente (o "ahora" si no tiene ninguno).
+     */
+    private function registerPayment(User $user, int $planId, ?string $dateStart, ?string $dateFinish): void
+    {
+        $plan = Plan::findOrFail($planId);
+
+        if (! $dateStart) {
+            $lastPayment = $user->user_payments()->latest('date_finish')->first();
+            $dateStart = $lastPayment?->date_finish ?? now();
+        }
+
+        $dateStart = Carbon::parse($dateStart);
+        $dateFinish = $dateFinish ? Carbon::parse($dateFinish) : $dateStart->copy()->addDays($plan->days);
+
+        UserPayment::create([
+            'user_id' => $user->id,
+            'plan_id' => $plan->id,
+            'payment_type_id' => null,
+            'date_start' => $dateStart,
+            'date_finish' => $dateFinish,
+            'order_id' => 'ADMIN-' . Str::uuid(),
+            'status' => 'MANUAL',
+            'amount' => $plan->price,
+            'currency' => 'USD',
+        ]);
+
+        $user->date_start = $dateStart;
+        $user->date_finish = $dateFinish;
+        $user->save();
+    }
+
     // Muestra un usuario específico
     public function show(User $user) : Response
     {
@@ -159,11 +205,15 @@ class UserController extends Controller
         $municipalities = Municipality::get();
         $user->role = $user->getRoleNames()[0];
 
+        $lastPayment = $user->user_payments()->with('plan')->latest('date_finish')->first();
+
         return Inertia::render('admin/users/update',[
             'user' => $user,
             'municipalities' => $municipalities,
             'roles' => RolesEnum::labels(),
             'account_types' => UserTypeEnum::labels(),
+            'plans' => Plan::where('is_active', true)->orderBy('name')->get(['id', 'name', 'price', 'days']),
+            'lastPayment' => $lastPayment,
         ]);
     }
 
@@ -173,7 +223,7 @@ class UserController extends Controller
         DB::beginTransaction();
         try {
 
-            $user->update([
+            $updateData = [
                 'document' => $request->document,
                 'first_name' => $request->first_name,
                 'last_name' => $request->last_name,
@@ -183,19 +233,29 @@ class UserController extends Controller
                 'account_type' => $request->account_type,
                 'email' => $request->email,
                 'username' => $request->email,
-                'password' => Hash::make($request->password),
                 'address_main' => $request->address_main,
                 'address_secondary' => $request->address_secondary,
                 'phone_number' => $request->phone_number,
                 'cell_number' => $request->cell_number,
                 'date_start' => $request->date_start,
                 'date_finish' => $request->date_finish,
-            ]);
+            ];
+
+            // Solo actualizar la contraseña si el admin escribió una nueva.
+            if ($request->filled('password')) {
+                $updateData['password'] = Hash::make($request->password);
+            }
+
+            $user->update($updateData);
 
 
             // Actualizar rol si cambió
             if ($request->filled('role')) {
                 $user->syncRoles([$request->input('role')]);
+            }
+
+            if ($request->boolean('add_payment') && $request->filled('plan_id')) {
+                $this->registerPayment($user, (int) $request->plan_id, $request->date_start, $request->date_finish);
             }
 
             DB::commit();
@@ -211,6 +271,29 @@ class UserController extends Controller
     public function destroy($id)
     {
         // ...implementación...
+    }
+
+    // Muestra el historial de pagos y el plan actual de un usuario
+    public function payments(User $user): Response
+    {
+        $payments = $user->user_payments()
+            ->with(['plan', 'payment_type'])
+            ->orderByDesc('date_start')
+            ->get();
+
+        return Inertia::render('admin/users/payments', [
+            'user' => [
+                'id' => $user->id,
+                'first_name' => $user->first_name,
+                'last_name' => $user->last_name,
+                'email' => $user->email,
+                'is_active' => $user->is_active,
+                'date_start' => $user->date_start,
+                'date_finish' => $user->date_finish,
+            ],
+            'currentPlan' => $payments->first()?->plan,
+            'payments' => $payments,
+        ]);
     }
 
     public function toggleStatus(User $user): RedirectResponse

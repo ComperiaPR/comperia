@@ -10,7 +10,7 @@ import { Label } from '@/components/ui/label';
 import SelectElement from '@/components/ui/select-element';
 import AppLayout from '@/layouts/app-layout';
 import { BreadcrumbItem, User } from '@/types';
-import { Municipality } from '@/types/master-data';
+import { Municipality, Plan } from '@/types/master-data';
 import { toast } from 'sonner';
 import { Checkbox } from '@/components/ui/checkbox';
 
@@ -22,6 +22,7 @@ interface PageProps<T = {}> {
     users: User[];
     municipalities: Municipality[];
     account_types: Record<string, string>;
+    plans: Plan[];
     // Other props can be added here
 }
 
@@ -42,7 +43,8 @@ const modelUser = {
     cell_number: '',
     date_start: '',
     date_finish: '',
-    account_type: ''
+    account_type: '',
+    plan_id: '',
 };
 
 const breadcrumbs: BreadcrumbItem[] = [{ title: 'Users', href: '/users' }, { title: 'Create User', href: '/admin/users/create' }];
@@ -53,16 +55,23 @@ export default function CreateUser({
     users,
     account_types,
     municipalities,
+    plans,
 }: PageProps<{
     roles: Record<string, string>;
     users: User[];
     account_types: Record<string, string>;
     municipalities: Municipality[];
+    plans: Plan[];
 }>) {
     let loading: boolean = false;
 
     const { data, setData, post, processing, errors } = useForm(modelUser);
     // console.info('Roles disponibles:', municipalities);
+
+    // Hooks must always run in the same order, so these can't live inside the
+    // conditionally-rendered "role === client" block.
+    const handleAccountTypeChange = useCallback((newValue: string) => setData('account_type', newValue), [setData]);
+    const handlePlanChange = useCallback((newValue: string | number) => setData('plan_id', newValue.toString()), [setData]);
 
     const clearForm = () => {
         setData('document', '');
@@ -82,6 +91,7 @@ export default function CreateUser({
         setData('date_finish', '');
         setData('role', '');
         setData('account_type', '');
+        setData('plan_id', '');
     };
 
     const submit: FormEventHandler = (e) => {
@@ -302,39 +312,55 @@ export default function CreateUser({
                                                 />
                                                 <InputError message={errors.role} className="mt-2" />
                                             </div>
-                                            <div>
-                                                <Label htmlFor="account_type">Account Type</Label>
-                                                <SelectElement
-                                                    data={Object.entries(account_types).map(([value, label]) => ({ id: value, name: label }))}
-                                                    valueSelected={data.account_type}
-                                                    onChangeEvent={useCallback((newValue: string) => setData('account_type', newValue), [setData])}
-                                                    className="w-full border-slate-200 bg-white"
-                                                />
-                                                <InputError message={errors.account_type} className="mt-2" />
-                                            </div>                                            
-                                            <div className="space-y-2.5">
-                                                <Label htmlFor="date_start">Start Date</Label>
-                                                <input
-                                                    type="date"
-                                                    max={new Date().toISOString().split('T')[0]}
-                                                    value={data.date_start ? new Date(data.date_start).toISOString().split('T')[0] : ''}
-                                                    onChange={(date) => setData('date_start', date.target.value)}
-                                                    className="w-full rounded-md border-slate-200 bg-white px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                                                />
-                                                <InputError className="mt-1" message={errors.date_start} />
-                                            </div>                                            
-                                            <div className="space-y-2.5">
-                                                <Label htmlFor="date_finish">End Date</Label>
-                                                <input
-                                                    type="date"
-                                                    max={new Date().toISOString().split('T')[0]}
-                                                    value={data.date_finish ? new Date(data.date_finish).toISOString().split('T')[0] : ''}
-                                                    onChange={(date) => setData('date_finish', date.target.value)}
-                                                    className="w-full rounded-md border-slate-200 bg-white px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                                                />
-                                                <InputError className="mt-1" message={errors.date_finish} />
-                                            </div>
                                         </div>
+
+                                        {/* Payment plan: only relevant for the Client role */}
+                                        {data.role === 'client' && (
+                                            <div className="grid grid-cols-1 gap-3 border-t border-blue-200 p-4 sm:grid-cols-2 sm:gap-2 lg:grid-cols-3">
+                                                <div>
+                                                    <Label htmlFor="account_type">Account Type</Label>
+                                                    <SelectElement
+                                                        data={Object.entries(account_types).map(([value, label]) => ({ id: value, name: label }))}
+                                                        valueSelected={data.account_type}
+                                                        onChangeEvent={handleAccountTypeChange}
+                                                        className="w-full border-slate-200 bg-white"
+                                                    />
+                                                    <InputError message={errors.account_type} className="mt-2" />
+                                                </div>
+                                                <div>
+                                                    <Label htmlFor="plan_id">Payment Plan</Label>
+                                                    <SelectElement
+                                                        data={plans.map((plan) => ({ id: plan.id, name: `${plan.name} — $${plan.price} (${plan.days}d)` }))}
+                                                        valueSelected={data.plan_id?.toString() ?? ''}
+                                                        onChangeEvent={handlePlanChange}
+                                                        className="w-full border-slate-200 bg-white"
+                                                    />
+                                                    <InputError message={errors.plan_id} className="mt-2" />
+                                                </div>
+                                                <div className="space-y-2.5">
+                                                    <Label htmlFor="date_start">Start Date</Label>
+                                                    <input
+                                                        type="date"
+                                                        max={data.date_finish ? new Date(data.date_finish).toISOString().split('T')[0] : undefined}
+                                                        value={data.date_start ? new Date(data.date_start).toISOString().split('T')[0] : ''}
+                                                        onChange={(date) => setData('date_start', date.target.value)}
+                                                        className="w-full rounded-md border-slate-200 bg-white px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                                                    />
+                                                    <InputError className="mt-1" message={errors.date_start} />
+                                                </div>
+                                                <div className="space-y-2.5">
+                                                    <Label htmlFor="date_finish">End Date</Label>
+                                                    <input
+                                                        type="date"
+                                                        min={data.date_start ? new Date(data.date_start).toISOString().split('T')[0] : undefined}
+                                                        value={data.date_finish ? new Date(data.date_finish).toISOString().split('T')[0] : ''}
+                                                        onChange={(date) => setData('date_finish', date.target.value)}
+                                                        className="w-full rounded-md border-slate-200 bg-white px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                                                    />
+                                                    <InputError className="mt-1" message={errors.date_finish} />
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
 

@@ -149,7 +149,7 @@ export default function RequiredMembership(): JSX.Element {
                 <main>
                     <section id="pricing" className="pt-15 pb-5 lg:pt-20">
                         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-                            <div className="bg-default mx-auto mb-12 max-w-6xl rounded-md px-3 py-3 text-center text-white supports-[backdrop-filter]:bg-black/50">
+                            <div className="bg-default mx-auto mb-12 flex max-w-6xl items-center justify-between rounded-md px-3 py-3 text-white supports-[backdrop-filter]:bg-black/50">
                                 <h3 className="text-start">
                                     Hello, {auth.user.first_name} {auth.user.last_name}!
                                 </h3>
@@ -157,6 +157,14 @@ export default function RequiredMembership(): JSX.Element {
                                 <p className="mx-auto max-w-2xl text-xl text-muted-foreground">
                                     Elige el plan que mejor se adapte a tus necesidades. Todos incluyen acceso completo durante el período de prueba.
                                 </p> */}
+                                <Link
+                                    href={route('logout')}
+                                    method="post"
+                                    as="button"
+                                    className="rounded-md border border-white/30 px-3 py-1.5 text-xs font-medium hover:bg-white/10"
+                                >
+                                    Log out
+                                </Link>
                             </div>
 
                             <div className="mx-auto grid max-w-6xl grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-4" style={paypalLoaded ? { display: 'none' } : { display: '' }}>
@@ -203,7 +211,16 @@ export default function RequiredMembership(): JSX.Element {
                               className="mx-auto mt-12 max-w-2xl rounded-md border border-border bg-white/80 p-6 py-3 text-center"
                             >
                                 <div className="w-full flex justify-end">
-                                    <Link href="/dashboard" className="pt-0 mt-0"><strong>{'<- back to plans'}</strong></Link>
+                                    <button
+                                        type="button"
+                                        className="pt-0 mt-0 cursor-pointer"
+                                        onClick={() => {
+                                            setPaypalLoaded(false);
+                                            setPlansSelected(null);
+                                        }}
+                                    >
+                                        <strong>{'<- back to plans'}</strong>
+                                    </button>
                                 </div>
                                 <div className='w-full'>
                                     <p className="mb-1 text-xs font-bold text-foreground sm:text-2xl">Complete your plan payment: {plansSelected ? plansSelected.name : ''}</p>

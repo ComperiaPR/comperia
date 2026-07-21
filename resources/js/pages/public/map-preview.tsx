@@ -1,38 +1,12 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Head } from '@inertiajs/react';
 import { MarkerClusterer } from '@googlemaps/markerclusterer';
-import { CustomMultiSelect } from '../../components/CustomMultiSelect';
 import AppLayout from '@/layouts/app-layout';
 import { BreadcrumbItem } from '@/types';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-
-function useGoogleMaps(apiKey: string) {
-  const [loaded, setLoaded] = useState(false);
-
-  useEffect(() => {
-    if ((window as any).google?.maps) {
-      setLoaded(true);
-      return;
-    }
-
-    const existing = document.querySelector<HTMLScriptElement>('script[data-google-maps]');
-    if (existing) {
-      if ((window as any).google?.maps) setLoaded(true);
-      else existing.addEventListener('load', () => setLoaded(true), { once: true });
-      return;
-    }
-
-    const script = document.createElement('script');
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}`;
-    script.async = true;
-    script.defer = true;
-    script.dataset.googleMaps = 'true';
-    script.addEventListener('load', () => setLoaded(true), { once: true });
-    document.body.appendChild(script);
-  }, [apiKey]);
-
-  return loaded;
-}
+import { Card, CardContent, CardTitle } from '@/components/ui/card';
+import { PropertyFilters } from '@/components/property-filters';
+import { EMPTY_PROPERTY_FILTERS, PropertyFilterValues } from '@/types/property-filters';
+import { useGoogleMaps } from '@/hooks/use-google-maps';
 
 interface ApiProperty {
   id: number;
@@ -64,128 +38,6 @@ function getIconForPropertyType(propertyTypeType?: number | null): string {
   return PROPERTY_TYPE_ICONS[propertyTypeType] || '/images/land.png';
 }
 
-interface Filters {
-  q: string;
-  municipality_id: (string | number)[];
-  property_type_id: (string | number)[];
-  transaction_type_id: (string | number)[];
-  price_min: string;
-  price_max: string;
-  area_min: string;
-  area_max: string;
-  date_from: string;
-  date_to: string;
-}
-
-function MapFilters({ filters, setFilters, onSearch, onClear, options }: any) {
-  return (
-    <form className="space-y-3 mb-3" onSubmit={e => e.preventDefault()}>
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
-        <CustomMultiSelect
-          options={options.municipalities.map((m: any) => ({ label: m.name, value: String(m.id) }))}
-          value={filters.municipality_id}
-          onChange={(selected: (string | number)[]) => setFilters({ ...filters, municipality_id: selected })}
-          maxTags={2}
-          placeholder="Selecciona municipios"
-        />
-        <CustomMultiSelect
-          options={options.property_types.map((t: any) => ({ label: t.name, value: String(t.id) }))}
-          value={filters.property_type_id}
-          onChange={(selected: (string | number)[]) => setFilters({ ...filters, property_type_id: selected })}
-          maxTags={2}
-          placeholder="Selecciona tipos de propiedad"
-        />
-        <CustomMultiSelect
-          options={options.transaction_types.map((tt: any) => ({ label: tt.name, value: String(tt.id) }))}
-          value={filters.transaction_type_id}
-          onChange={(selected: (string | number)[]) => setFilters({ ...filters, transaction_type_id: selected })}
-          maxTags={2}
-          placeholder="Selecciona tipos de transacción"
-        />
-        <input
-          type="number"
-          className="border rounded px-2 py-1"
-          placeholder="Precio mínimo"
-          value={filters.price_min}
-          onChange={e => setFilters({ ...filters, price_min: e.target.value })}
-        />
-        <input
-          type="number"
-          className="border rounded px-2 py-1"
-          placeholder="Precio máximo"
-          value={filters.price_max}
-          onChange={e => setFilters({ ...filters, price_max: e.target.value })}
-        />
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-        <input
-          type="number"
-          className="border rounded px-2 py-1"
-          placeholder="Área mínima (mt²)"
-          value={filters.area_min}
-          onChange={e => setFilters({ ...filters, area_min: e.target.value })}
-        />
-        <input
-          type="number"
-          className="border rounded px-2 py-1"
-          placeholder="Área máxima (mt²)"
-          value={filters.area_max}
-          onChange={e => setFilters({ ...filters, area_max: e.target.value })}
-        />
-        <input
-          type="date"
-          className="border rounded px-2 py-1"
-          value={filters.date_from}
-          onChange={e => setFilters({ ...filters, date_from: e.target.value })}
-        />
-        <input
-          type="date"
-          className="border rounded px-2 py-1"
-          value={filters.date_to}
-          onChange={e => setFilters({ ...filters, date_to: e.target.value })}
-        />
-      </div>
-
-      <div className="flex gap-3 items-center">
-        <input
-          className="border rounded px-2 py-1 flex-1"
-          placeholder="Palabra clave (calle, registro, catastro...)"
-          value={filters.q}
-          onChange={e => setFilters({ ...filters, q: e.target.value })}
-        />
-        <button
-          type="button"
-          onClick={onSearch}
-          className="bg-blue-600 text-white px-4 py-1 rounded hover:bg-blue-700"
-        >
-          Buscar
-        </button>
-        <button
-          type="button"
-          onClick={onClear}
-          className="border border-gray-400 text-gray-600 rounded px-3 py-1 hover:bg-gray-100"
-        >
-          Limpiar
-        </button>
-      </div>
-    </form>
-  );
-}
-
-const EMPTY_FILTERS: Filters = {
-  q: '',
-  municipality_id: [],
-  property_type_id: [],
-  transaction_type_id: [],
-  price_min: '',
-  price_max: '',
-  area_min: '',
-  area_max: '',
-  date_from: '',
-  date_to: ''
-};
-
 export default function MapPreview() {
   const apiKey = (document.querySelector('meta[name="gmaps-key"]') as HTMLMetaElement)?.content || '';
   const loaded = useGoogleMaps(apiKey);
@@ -197,7 +49,7 @@ export default function MapPreview() {
   const infoWindowRef = useRef<any>(null);
 
   const [properties, setProperties] = useState<ApiProperty[]>([]);
-  const [filters, setFilters] = useState<Filters>(EMPTY_FILTERS);
+  const [filters, setFilters] = useState<PropertyFilterValues>(EMPTY_PROPERTY_FILTERS);
   const [options, setOptions] = useState<any>({ 
     municipalities: [], 
     property_types: [], 
@@ -491,7 +343,7 @@ export default function MapPreview() {
   }, [filters, loaded, updateMarkers]);
 
   const handleClear = useCallback(() => {
-    setFilters(EMPTY_FILTERS);
+    setFilters(EMPTY_PROPERTY_FILTERS);
     setProperties([]);
     updateMarkers([]);
     
@@ -521,12 +373,15 @@ export default function MapPreview() {
         <Card className='gap-3'>
           <CardTitle className="px-4 pt-2 py-0 mb-0 pb-0">Property Search</CardTitle>
           <CardContent className='px-4 mt-0 pt-0'>
-            <MapFilters
+            <PropertyFilters
               filters={filters}
-              setFilters={setFilters}
+              onChange={setFilters}
               onSearch={performSearch}
               onClear={handleClear}
-              options={options}
+              municipalities={options.municipalities}
+              property_types={options.property_types}
+              transaction_types={options.transaction_types}
+              loading={loadingProps}
             />
           </CardContent>
         </Card>

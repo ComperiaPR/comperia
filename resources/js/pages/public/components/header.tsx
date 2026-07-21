@@ -3,11 +3,14 @@ import { usePage } from '@inertiajs/react';
 import { useState } from "react"
 import { Link } from '@inertiajs/react';
 import { Button } from "@/components/ui/button"
-import { Menu, X, Home } from "lucide-react"
+import { Menu, X } from "lucide-react"
+import ContactMessageModal from '@/components/contact-message-modal';
 
 export function Header() {
     const { auth } = usePage<SharedData>().props;
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [contactOpen, setContactOpen] = useState(false)
+  const onContactClick = () => setContactOpen(true)
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen)
 
@@ -16,9 +19,8 @@ export function Header() {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           <div className="flex items-center space-x-2">
-            <Link href={route('home')} className="flex items-center space-x-2">
-              <Home className="h-8 w-8 text-pr-blue" />
-              <span className="text-xl font-bold text-foreground">Comperia</span>
+            <Link href={route('home')} className="flex items-center">
+              <img src="/images/logo.png" alt="Comperia" className="h-8 w-auto object-contain sm:h-10" />
             </Link>
           </div>
 
@@ -36,12 +38,13 @@ export function Header() {
             >
               About
             </Link>
-            <Link
-              href="#contact-us"
-              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+            <button
+              type="button"
+              onClick={onContactClick}
+              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
             >
               Contact us
-            </Link>
+            </button>
             <Link target='_blank'
               href="https://comperiapr.com/Archivos/INFORMATION.pdf"
               className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
@@ -102,9 +105,13 @@ export function Header() {
               <Link href="#testimonials" className="text-sm font-medium text-muted-foreground hover:text-foreground">
                 Testimonios
               </Link>
-              <Link href="#contact" className="text-sm font-medium text-muted-foreground hover:text-foreground">
-                Contacto
-              </Link>
+              <button
+                type="button"
+                onClick={onContactClick}
+                className="text-left text-sm font-medium text-muted-foreground hover:text-foreground cursor-pointer"
+              >
+                Contact us
+              </button>
               <div className="flex flex-col space-y-2 pt-4">
                 <Button variant="ghost" size="sm">
                   Iniciar Sesión
@@ -115,6 +122,13 @@ export function Header() {
           </div>
         )}
       </div>
+
+      <ContactMessageModal
+        isOpen={contactOpen}
+        onClose={() => setContactOpen(false)}
+        defaultName={auth.user ? `${auth.user.first_name ?? ''} ${auth.user.last_name ?? ''}`.trim() : ''}
+        defaultEmail={auth.user?.email ?? ''}
+      />
     </header>
   )
 }

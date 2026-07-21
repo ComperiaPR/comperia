@@ -11,16 +11,29 @@ const sidebarNavItems: NavItem[] = [
         title: 'Profile',
         href: '/settings/profile',
         icon: null,
+        roles: [],
+        _open: false,
     },
     {
         title: 'Password',
         href: '/settings/password',
         icon: null,
+        roles: [],
+        _open: false,
+    },
+    {
+        title: 'Payments',
+        href: '/settings/payments',
+        icon: null,
+        roles: [],
+        _open: false,
     },
     {
         title: 'Appearance',
         href: '/settings/appearance',
         icon: null,
+        roles: [],
+        _open: false,
     },
 ];
 

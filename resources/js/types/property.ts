@@ -8,6 +8,9 @@ export interface Property {
     property_status_id: number | 1;
     registry: string | null;
     deed_no: string | null;
+    deed_pdf_path: string | null;
+    deed_pdf_url: string | null;
+    deed_pdf?: File | null;
     sale_date: Date | string | null;
     transaction_type_id: number | null;
     notary: string | null;

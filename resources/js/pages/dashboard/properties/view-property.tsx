@@ -1,11 +1,14 @@
 import AppLayout from '@/layouts/app-layout';
-import { Head } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
 import { BreadcrumbItem } from '@/types';
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
 import { Property } from '@/types/property';
-import React from 'react';
+import React, { useState } from 'react';
 import { InfoMunicipality, Mortgagee, Municipality, PropertyCondition, PropertyStatus, PropertyType, TransactionType } from '@/types/master-data';
+import { FileSpreadsheet, FileText, MapPin, MessageSquareWarning, Printer } from 'lucide-react';
+import PropertyImprovementModal from '@/components/property-improvement-modal';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -26,12 +29,16 @@ interface MasterDataProps {
     mortgagees: Mortgagee[];
     property_conditions: PropertyCondition[];
     property: Property;
+    sameLocationProperties: Property[];
+    improvementTypes: Record<string, string>;
 }
 
 const InfoMunicipalitys = InfoMunicipality;
 
 const ViewProperty = (masterData: MasterDataProps) => {
     const property: Property = masterData.property;
+    const sameLocationProperties = masterData.sameLocationProperties ?? [];
+    const [improvementOpen, setImprovementOpen] = useState(false);
 
     // Helper para mostrar valores relacionados
     const getNameById = (arr: any[], id: number | string | undefined, field = 'id', label = 'name') =>
@@ -39,6 +46,54 @@ const ViewProperty = (masterData: MasterDataProps) => {
 
     return (
         <div className="flex h-full flex-1 flex-col items-center gap-4 rounded-xl p-4">
+            <div className="flex w-full flex-wrap justify-end gap-2 print:hidden">
+                <a href={'/properties/export/pdf/' + property.id + '?inline=1'} target="_blank" rel="noopener noreferrer">
+                    <Button type="button" variant="outline" size="sm">
+                        <Printer className="mr-1 h-4 w-4" /> Print
+                    </Button>
+                </a>
+                <a href={'/properties/export/pdf/' + property.id}>
+                    <Button type="button" variant="outline" size="sm">
+                        <FileText className="mr-1 h-4 w-4" /> Download PDF
+                    </Button>
+                </a>
+                <a href={'/properties/export/excel/' + property.id}>
+                    <Button type="button" variant="outline" size="sm">
+                        <FileSpreadsheet className="mr-1 h-4 w-4" /> Excel
+                    </Button>
+                </a>
+                <a href={'/properties/export/word/' + property.id}>
+                    <Button type="button" variant="outline" size="sm">
+                        <FileText className="mr-1 h-4 w-4" /> Word
+                    </Button>
+                </a>
+                <Button type="button" variant="outline" size="sm" onClick={() => setImprovementOpen(true)}>
+                    <MessageSquareWarning className="mr-1 h-4 w-4" /> Please Improve Me
+                </Button>
+            </div>
+            {sameLocationProperties.length > 0 && (
+                <Card className="w-full border-amber-300 bg-amber-50 shadow-sm py-2">
+                    <CardContent className="space-y-2 py-2">
+                        <div className="flex items-center gap-2 text-sm font-semibold text-amber-900">
+                            <MapPin className="h-4 w-4" />
+                            Other properties at this same location ({sameLocationProperties.length})
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                            {sameLocationProperties.map((sameProperty) => (
+                                <Link
+                                    key={sameProperty.id}
+                                    href={'/properties/view/' + sameProperty.id}
+                                    className="rounded-md border border-amber-300 bg-white px-3 py-1.5 text-xs text-amber-900 hover:bg-amber-100"
+                                >
+                                    #{sameProperty.id} · {sameProperty.street || 'No address'}
+                                    {sameProperty.unit_number ? ' ' + sameProperty.unit_number : ''}
+                                    {sameProperty.property_type?.name ? ' · ' + sameProperty.property_type.name : ''}
+                                </Link>
+                            ))}
+                        </div>
+                    </CardContent>
+                </Card>
+            )}
             <Card className="w-full border-slate-200 shadow-sm">
                 <CardContent className="space-y-">
                     <div className="mx-auto w-full overflow-hidden rounded-md border border-blue-500">
@@ -141,6 +196,23 @@ const ViewProperty = (masterData: MasterDataProps) => {
                             <div>
                                 <span className="text-sm font-bold text-slate-900">Deed No.:</span>
                                 <div>{property.deed_no}</div>
+                            </div>
+                            <div>
+                                <span className="text-sm font-bold text-slate-900">Deed (PDF):</span>
+                                <div>
+                                    {property.deed_pdf_url ? (
+                                        <a
+                                            href={property.deed_pdf_url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="text-blue-600 underline"
+                                        >
+                                            View document
+                                        </a>
+                                    ) : (
+                                        '-'
+                                    )}
+                                </div>
                             </div>
                             <div>
                                 <span className="text-sm font-bold text-slate-900">Registry:</span>
@@ -302,6 +374,13 @@ const ViewProperty = (masterData: MasterDataProps) => {
                     </div>
                 </CardContent>
             </Card>
+
+            <PropertyImprovementModal
+                isOpen={improvementOpen}
+                onClose={() => setImprovementOpen(false)}
+                propertyId={property.id ?? 0}
+                improvementTypes={masterData.improvementTypes}
+            />
         </div>
     );
 }

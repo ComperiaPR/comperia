@@ -12,6 +12,6 @@ interface PropertyInterface
 {
     public function store(Request $requestProperty): Property;
     public function update(Property $property, Request $requestProperty): Property;
-    public function getProperties(): LengthAwarePaginator;
+    public function getProperties(Request $propertyRequest): LengthAwarePaginator;
     public function getClientProperties(Request $propertyRequest): LengthAwarePaginator;
 }

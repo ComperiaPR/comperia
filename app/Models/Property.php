@@ -10,6 +10,7 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * Class Property
@@ -22,6 +23,7 @@ use Illuminate\Support\Facades\Cache;
  * @property int $property_status_id
  * @property string|null $registry
  * @property int|null $deed_no
+ * @property string|null $deed_pdf_path
  * @property Carbon|null $sale_date
  * @property int $transaction_type_id
  * @property string|null $notary
@@ -78,6 +80,10 @@ class Property extends Model
 {
 	protected $table = 'properties';
 
+	protected $appends = [
+		'deed_pdf_url',
+	];
+
 	protected $casts = [
 		'daily' => 'int',
 		'municipality_id' => 'int',
@@ -109,6 +115,7 @@ class Property extends Model
 		'property_status_id',
 		'registry',
 		'deed_no',
+		'deed_pdf_path',
 		'sale_date',
 		'transaction_type_id',
 		'notary',
@@ -164,6 +171,11 @@ class Property extends Model
 		static::deleted(function (Property $property): void {
 			Cache::increment('map:version');
 		});
+	}
+
+	public function getDeedPdfUrlAttribute(): ?string
+	{
+		return $this->deed_pdf_path ? Storage::disk('public')->url($this->deed_pdf_path) : null;
 	}
 
 	// Scopes

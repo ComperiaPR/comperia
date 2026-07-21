@@ -11,7 +11,7 @@ import AppLayout from '@/layouts/app-layout';
 import { BreadcrumbItem, PaginatedData, User } from '@/types';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Edit, Eye, FileSpreadsheet, MoreVertical, Settings, Trash2, UserCheck2, UserPen, UserPlus2, UserRoundPen, UserX2 } from 'lucide-react';
+import { Edit, Eye, FileSpreadsheet, MoreVertical, Receipt, Settings, Trash2, UserCheck2, UserPen, UserPlus2, UserRoundPen, UserX2 } from 'lucide-react';
 
 interface PageProps {
     auth: {
@@ -225,6 +225,14 @@ export default function UsersIndex({ auth, users, roles, filters }: PageProps) {
                                                                         className="flex items-start justify-start w-full px-3 py-2 text-sm text-blue-400 hover:bg-gray-100 bg-default"
                                                                     >
                                                                         <UserRoundPen className="h-4 w-4 text-blue-400" /> Edit
+                                                                    </Link>
+                                                                </DropdownMenuItem>
+                                                                <DropdownMenuItem asChild>
+                                                                    <Link
+                                                                        href={"/users/"+user.id+"/payments"}
+                                                                        className="flex items-start justify-start w-full px-3 py-2 text-sm text-fuchsia-700 hover:bg-gray-100 bg-default"
+                                                                    >
+                                                                        <Receipt className="h-4 w-4 text-fuchsia-700" /> Payment History
                                                                     </Link>
                                                                 </DropdownMenuItem>
                                                                 <DropdownMenuItem asChild>

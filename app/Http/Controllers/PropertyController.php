@@ -6,6 +6,7 @@ namespace App\Http\Controllers;
 
 use App\DTOs\PropertyCreateDTO;
 use App\DTOs\PropertyUpdateDTO;
+use App\Enums\PropertyImprovementTypeEnum;
 use App\Exports\PropertiesExport;
 use App\Http\Requests\PropertyStoreRequest;
 use App\Http\Requests\PropertyUpdateRequest;
@@ -34,16 +35,16 @@ class PropertyController extends Controller
         $this->propertyService = $propertyService;
     }
 
-    public function index(): Response
+    public function index(Request $request): Response
     {
         // Gate::authorize(PermissionsEnum::ViewProperties);
 
-        $properties = $this->propertyService->getProperties();
+        $properties = $this->propertyService->getProperties($request);
 
         return Inertia::render('dashboard/properties/list-properties', [
             'properties' => $properties,
+            ...$this->propertySearchOptions($request),
         ]);
-
     }
 
     public function create(): Response
@@ -154,6 +155,18 @@ class PropertyController extends Controller
         $mortgagees = Mortgagee::orderBy('name')->get();
         $property_conditions = PropertyCondition::orderBy('name')->get();
 
+        $sameLocationProperties = [];
+
+        if (! empty($property->latitude) && ! empty($property->longitude)) {
+            $sameLocationProperties = Property::query()
+                ->where('id', '!=', $property->id)
+                ->where('latitude', $property->latitude)
+                ->where('longitude', $property->longitude)
+                ->with(['municipality', 'property_type', 'transaction_type'])
+                ->orderBy('id')
+                ->get();
+        }
+
         return Inertia::render('dashboard/properties/view-property', [
             'property' => $property,
             'municipalities' => $municipalities,
@@ -162,6 +175,8 @@ class PropertyController extends Controller
             'property_types' => $property_types,
             'mortgagees' => $mortgagees,
             'property_conditions' => $property_conditions,
+            'sameLocationProperties' => $sameLocationProperties,
+            'improvementTypes' => PropertyImprovementTypeEnum::labels(),
         ]);
     }
 
@@ -173,8 +188,39 @@ class PropertyController extends Controller
 
         return Inertia::render('dashboard/properties/client-properties', [
             'properties' => $properties,
+            ...$this->propertySearchOptions($request),
         ]);
+    }
 
+    public function basicSearch(Request $request): Response
+    {
+        // Gate::authorize(PermissionsEnum::ViewProperties);
+
+        $request->merge(['per_page' => $request->input('per_page', 12)]);
+
+        $properties = $this->propertyService->getClientProperties($request);
+
+        return Inertia::render('dashboard/properties/basic-search', [
+            'properties' => $properties,
+            ...$this->propertySearchOptions($request),
+        ]);
+    }
+
+    /**
+     * Master data + normalized filters shared by the property search views
+     * (List Search and Basic Search) so they stay in sync.
+     */
+    private function propertySearchOptions(Request $request): array
+    {
+        return [
+            'municipalities' => Municipality::orderBy('name')->get(['id', 'name']),
+            'property_types' => PropertyType::orderBy('name')->get(['id', 'name']),
+            'transaction_types' => TransactionType::orderBy('name')->get(['id', 'name']),
+            'filters' => $request->only([
+                'q', 'municipality_id', 'property_type_id', 'transaction_type_id',
+                'price_min', 'price_max', 'area_min', 'area_max', 'date_from', 'date_to',
+            ]),
+        ];
     }
 
     public function exportProperties(Request $request): BinaryFileResponse

@@ -10,9 +10,18 @@ import { Label } from '@/components/ui/label';
 import SelectElement from '@/components/ui/select-element';
 import AppLayout from '@/layouts/app-layout';
 import { BreadcrumbItem, User } from '@/types';
-import { Municipality } from '@/types/master-data';
+import { Municipality, Plan } from '@/types/master-data';
 import { toast } from 'sonner';
 import { Checkbox } from '@/components/ui/checkbox';
+
+interface LastPayment {
+    id: number;
+    date_start: string;
+    date_finish: string;
+    amount: string;
+    status: string | null;
+    plan: Plan | null;
+}
 
 interface PageProps<T = {}> {
     auth: {
@@ -22,6 +31,8 @@ interface PageProps<T = {}> {
     user: User;
     municipalities: Municipality[];
     account_types: Record<string, string>;
+    plans: Plan[];
+    lastPayment: LastPayment | null;
     // Other props can be added here
 }
 
@@ -33,17 +44,31 @@ export default function CreateUser({
     user,
     account_types,
     municipalities,
+    plans,
+    lastPayment,
 }: PageProps<{
     roles: Record<string, string>;
     user: User;
     account_types: Record<string, string>;
     municipalities: Municipality[];
+    plans: Plan[];
+    lastPayment: LastPayment | null;
 }>) {
     let loading: boolean = false;
-    console.info(user)
-    const { data, setData, put, processing, errors } = useForm(user);
+    const { data, setData, put, processing, errors } = useForm({
+        ...user,
+        password: '',
+        password_confirmation: '',
+        plan_id: '',
+        add_payment: false,
+    });
     // setData('password', '');
     // setData('password_confirmation', '');
+
+    // Hooks must always run in the same order, so these can't live inside the
+    // conditionally-rendered "role === client" / "add_payment" blocks.
+    const handleAccountTypeChange = useCallback((newValue: string) => setData('account_type', newValue), [setData]);
+    const handlePlanChange = useCallback((newValue: string | number) => setData('plan_id', newValue.toString()), [setData]);
     // console.info('Roles disponibles:', municipalities);
 
     const clearForm = () => {
@@ -64,6 +89,16 @@ export default function CreateUser({
         setData('date_finish', '');
         setData('role', '');
         setData('account_type', '');
+        setData('plan_id', '');
+        setData('add_payment', false);
+    };
+
+    const toggleAddPayment = (checked: boolean) => {
+        setData('add_payment', checked);
+        if (checked && lastPayment) {
+            // Suggest a start date right after the current payment ends (editable).
+            setData('date_start', lastPayment.date_finish);
+        }
     };
 
     const submit: FormEventHandler = (e) => {
@@ -170,27 +205,27 @@ export default function CreateUser({
                                                 <InputError message={errors.email} className="mt-2" />
                                             </div>
                                             <div>
-                                                <Label htmlFor="password">Contraseña</Label>
+                                                <Label htmlFor="password">Nueva Contraseña (opcional)</Label>
                                                 <Input
                                                     id="password"
                                                     type="password"
-                                                    autoComplete="off"
+                                                    autoComplete="new-password"
                                                     value={data.password ?? ''}
                                                     onChange={(e) => setData('password', e.target.value ?? '')}
-                                                    placeholder="Contraseña"
+                                                    placeholder="Dejar en blanco para mantener la actual"
                                                     disabled={processing}
                                                 />
                                                 <InputError message={errors.password} className="mt-2" />
                                             </div>
                                             <div>
-                                                <Label htmlFor="password_confirmation">Confirmar Contraseña</Label>
+                                                <Label htmlFor="password_confirmation">Confirmar Nueva Contraseña</Label>
                                                 <Input
                                                     id="password_confirmation"
                                                     type="password"
-                                                    autoComplete="off"
+                                                    autoComplete="new-password"
                                                     value={data.password_confirmation}
                                                     onChange={(e) => setData('password_confirmation', e.target.value)}
-                                                    placeholder="Confirmar Contraseña"
+                                                    placeholder="Dejar en blanco para mantener la actual"
                                                     disabled={processing}
                                                 />
                                                 <InputError message={errors.password_confirmation} className="mt-2" />
@@ -287,39 +322,78 @@ export default function CreateUser({
                                                 />
                                                 <InputError message={errors.role} className="mt-2" />
                                             </div>
-                                            <div>
-                                                <Label htmlFor="account_type">Account Type</Label>
-                                                <SelectElement
-                                                    data={Object.entries(account_types).map(([value, label]) => ({ id: value, name: label }))}
-                                                    valueSelected={data.account_type}
-                                                    onChangeEvent={useCallback((newValue: string) => setData('account_type', newValue), [setData])}
-                                                    className="w-full border-slate-200 bg-white"
-                                                />
-                                                <InputError message={errors.account_type} className="mt-2" />
-                                            </div>                                            
-                                            <div className="space-y-2.5">
-                                                <Label htmlFor="date_start">Start Date</Label>
-                                                <input
-                                                    type="date"
-                                                    max={new Date().toISOString().split('T')[0]}
-                                                    value={data.date_start ? new Date(data.date_start).toISOString().split('T')[0] : ''}
-                                                    onChange={(date) => setData('date_start', date.target.value)}
-                                                    className="w-full rounded-md border-slate-200 bg-white px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                                                />
-                                                <InputError className="mt-1" message={errors.date_start} />
-                                            </div>                                            
-                                            <div className="space-y-2.5">
-                                                <Label htmlFor="date_finish">End Date</Label>
-                                                <input
-                                                    type="date"
-                                                    max={new Date().toISOString().split('T')[0]}
-                                                    value={data.date_finish ? new Date(data.date_finish).toISOString().split('T')[0] : ''}
-                                                    onChange={(date) => setData('date_finish', date.target.value)}
-                                                    className="w-full rounded-md border-slate-200 bg-white px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                                                />
-                                                <InputError className="mt-1" message={errors.date_finish} />
-                                            </div>
                                         </div>
+
+                                        {/* Payment plan: only relevant for the Client role */}
+                                        {data.role === 'client' && (
+                                            <div className="space-y-4 border-t border-blue-200 p-4">
+                                                {lastPayment && (
+                                                    <div className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600">
+                                                        Current plan: <strong>{lastPayment.plan?.name ?? '—'}</strong> · expires{' '}
+                                                        <strong>{new Date(lastPayment.date_finish).toLocaleDateString()}</strong>
+                                                    </div>
+                                                )}
+
+                                                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-2 lg:grid-cols-3">
+                                                    <div>
+                                                        <Label htmlFor="account_type">Account Type</Label>
+                                                        <SelectElement
+                                                            data={Object.entries(account_types).map(([value, label]) => ({ id: value, name: label }))}
+                                                            valueSelected={data.account_type}
+                                                            onChangeEvent={handleAccountTypeChange}
+                                                            className="w-full border-slate-200 bg-white"
+                                                        />
+                                                        <InputError message={errors.account_type} className="mt-2" />
+                                                    </div>
+                                                    <div className="space-y-2.5">
+                                                        <Label htmlFor="date_start">Start Date</Label>
+                                                        <input
+                                                            type="date"
+                                                            max={data.date_finish ? new Date(data.date_finish).toISOString().split('T')[0] : undefined}
+                                                            value={data.date_start ? new Date(data.date_start).toISOString().split('T')[0] : ''}
+                                                            onChange={(date) => setData('date_start', date.target.value)}
+                                                            className="w-full rounded-md border-slate-200 bg-white px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                                                        />
+                                                        <InputError className="mt-1" message={errors.date_start} />
+                                                    </div>
+                                                    <div className="space-y-2.5">
+                                                        <Label htmlFor="date_finish">End Date</Label>
+                                                        <input
+                                                            type="date"
+                                                            min={data.date_start ? new Date(data.date_start).toISOString().split('T')[0] : undefined}
+                                                            value={data.date_finish ? new Date(data.date_finish).toISOString().split('T')[0] : ''}
+                                                            onChange={(date) => setData('date_finish', date.target.value)}
+                                                            className="w-full rounded-md border-slate-200 bg-white px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                                                        />
+                                                        <InputError className="mt-1" message={errors.date_finish} />
+                                                    </div>
+                                                </div>
+
+                                                <div className="flex items-center gap-2">
+                                                    <Checkbox
+                                                        id="add_payment"
+                                                        checked={data.add_payment}
+                                                        onCheckedChange={(checked) => toggleAddPayment(checked === true)}
+                                                    />
+                                                    <Label htmlFor="add_payment" className="text-sm font-medium text-slate-900">
+                                                        Register a new payment for this period
+                                                    </Label>
+                                                </div>
+
+                                                {data.add_payment && (
+                                                    <div>
+                                                        <Label htmlFor="plan_id">Payment Plan</Label>
+                                                        <SelectElement
+                                                            data={plans.map((plan) => ({ id: plan.id, name: `${plan.name} — $${plan.price} (${plan.days}d)` }))}
+                                                            valueSelected={data.plan_id?.toString() ?? ''}
+                                                            onChangeEvent={handlePlanChange}
+                                                            className="w-full border-slate-200 bg-white sm:max-w-sm"
+                                                        />
+                                                        <InputError message={errors.plan_id} className="mt-2" />
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
 

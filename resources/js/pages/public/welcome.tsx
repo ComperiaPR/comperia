@@ -1,10 +1,12 @@
 import { Head } from '@inertiajs/react';
 
+import { AboutSection } from '@/pages/public/components/about-section';
 import { FeaturesSection } from '@/pages/public/components/features-section';
 import { Footer } from '@/pages/public/components/footer';
 import { Header } from '@/pages/public/components/header';
 import { HeroSection } from '@/pages/public/components/hero-section';
 import { PricingSection } from '@/pages/public/components/pricing-section';
+import { SocialLinks } from '@/pages/public/components/social-links';
 import { StatsSection } from '@/pages/public/components/stats-section';
 import { TestimonialsSection } from '@/pages/public/components/testimonials-section';
 
@@ -21,13 +23,16 @@ export default function Welcome() {
                 <Header />
                 <main>
                     <HeroSection />
+                    <AboutSection />
                     <FeaturesSection />
-                    <StatsSection />
+                    {/* <StatsSection /> */}
                     {/* <PricingSection /> */}
                     {/* <TestimonialsSection /> */}
                 </main>
                 <Footer />
             </div>
+
+            <SocialLinks />
         </>
     );
 }

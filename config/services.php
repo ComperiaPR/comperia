@@ -45,4 +45,8 @@ return [
         'base_url' => env('PAYPAL_BASE_URL'),
     ],
 
+    'contact' => [
+        'notify_email' => env('CONTACT_NOTIFICATION_EMAIL', 'comperiapr@gmail.com'),
+    ],
+
 ];

@@ -2,7 +2,7 @@ import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { SharedData, type NavItem } from '@/types';
-import { Building, LayoutGrid, UserCog, UserSearch  } from 'lucide-react';
+import { Building, Info, LayoutGrid, List, Map, MessageSquare, Search, UserCog, UserSearch  } from 'lucide-react';
 import { Link, usePage } from '@inertiajs/react';
 import AppLogo from './app-logo';
 
@@ -17,21 +17,28 @@ const mainNavItems: NavItem[] = [
     {
         title: 'Map Search',
         href: '/map/preview',
-        icon: Building,
+        icon: Map,
         roles: ['admin', 'super_user', 'client'],
         _open: false,
     },
     {
         title: 'Basic Search',
-        href: '/map/preview',
-        icon: Building,
+        href: '/properties/basic-search',
+        icon: Search,
         roles: ['admin', 'super_user', 'client'],
         _open: false,
     },
     {
         title: 'List Search',
         href: '/properties/view/list',
-        icon: Building,
+        icon: List,
+        roles: ['admin', 'super_user', 'client'],
+        _open: false,
+    },
+    {
+        title: 'About Us',
+        href: '/about',
+        icon: Info,
         roles: ['admin', 'super_user', 'client'],
         _open: false,
     },
@@ -56,6 +63,13 @@ const mainNavItems: NavItem[] = [
                 roles: ['admin', 'super_user', 'editor'],
                 _open: false,
             },
+            {
+                title: 'Contact',
+                href: '/contacts',
+                icon: MessageSquare,
+                roles: ['admin', 'super_user'],
+                _open: false,
+            },
         ],
     },
 ];
@@ -64,9 +78,10 @@ export function AppSidebar() {
 
     const { props: { auth } } = usePage<SharedData>();
     // Type assertion to specify the shape of auth.user
-    const user = auth.user as unknown as { roles: { name: string }[] };
+    const user = auth.user as unknown as { roles?: { name: string }[] };
+    const userRoleNames = (user.roles ?? []).map((role) => role.name);
 
-    const mainNavItemsFilter = mainNavItems.filter((item) => item.roles.includes(user.roles[0].name));
+    const mainNavItemsFilter = mainNavItems.filter((item) => item.roles.some((role) => userRoleNames.includes(role)));
 
     return (
         <Sidebar collapsible="icon" variant="inset">

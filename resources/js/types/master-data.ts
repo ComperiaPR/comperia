@@ -24,6 +24,12 @@ export interface PropertyCondition {
     id: number
     name: string
 }
+export interface Plan {
+    id: number
+    name: string
+    price: number
+    days: number
+}
 
 
 export interface MasterData {
@@ -43,6 +49,9 @@ export const DefaultProperty: Property = {
         property_status_id: 1,
         registry: null,
         deed_no: null,
+        deed_pdf_path: null,
+        deed_pdf_url: null,
+        deed_pdf: null,
         sale_date: null,
         transaction_type_id: null,
         notary: null,

@@ -41,7 +41,7 @@ const InfoMunicipalitys = InfoMunicipality;
 const UpdateProperty = (masterData: MasterDataProps) => {
     const property : Property = masterData.property
 
-    const { data, setData, put, errors, processing } = useForm(property);
+    const { data, setData, post, transform, errors, processing } = useForm(property);
     // errores de validación del lado del cliente
     const [clientErrors, setClientErrors] = useState<Record<string, string | undefined>>({});
     
@@ -148,7 +148,15 @@ const UpdateProperty = (masterData: MasterDataProps) => {
     const submit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
 
-        put('/properties/'+property.id, {
+        // Laravel/PHP no procesa multipart/form-data en peticiones PUT reales,
+        // por lo que si hay un archivo adjunto (deed_pdf) se envía como POST
+        // con method spoofing (_method=put) tal como recomienda Inertia.
+        transform((data) => ({
+            ...data,
+            _method: 'put',
+        }));
+
+        post('/properties/'+property.id, {
             preserveScroll: true,
             onSuccess: () => {
                 setData(property);
@@ -289,6 +297,27 @@ const UpdateProperty = (masterData: MasterDataProps) => {
                                         className="w-full border-slate-200 bg-white"
                                     />
                                     <InputError className="mt-1" message={clientErrors.deed_no || errors.deed_no} />
+                                </div>
+
+                                <div className="space-y-2.5">
+                                    <Label className="text-sm font-medium text-slate-900">Escritura (PDF)</Label>
+                                    <Input
+                                        type="file"
+                                        accept="application/pdf"
+                                        onChange={(e) => handleChange('deed_pdf', e.target.files?.[0] ?? null)}
+                                        className="w-full border-slate-200 bg-white"
+                                    />
+                                    {property.deed_pdf_url && (
+                                        <a
+                                            href={property.deed_pdf_url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="text-sm text-blue-600 underline"
+                                        >
+                                            Ver escritura actual
+                                        </a>
+                                    )}
+                                    <InputError className="mt-1" message={clientErrors.deed_pdf || errors.deed_pdf} />
                                 </div>
 
                                 <div className="space-y-2.5">

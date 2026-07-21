@@ -1,13 +1,16 @@
-import { useState, useCallback } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import AppLayout from '@/layouts/app-layout';
 import { PaginatedData, type BreadcrumbItem } from '@/types';
 import { Head, Link, router } from '@inertiajs/react';
-import { Building2, Edit, Eye, FileSpreadsheet, ListOrdered, MoreVertical, Trash2 } from 'lucide-react';
+import { Building2, Edit, Eye, ListOrdered, MoreVertical, Trash2 } from 'lucide-react';
 import { Property } from '@/types/property';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Municipality, PropertyType, TransactionType } from '@/types/master-data';
+import { EMPTY_PROPERTY_FILTERS, PropertyFilterValues } from '@/types/property-filters';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { PropertyFilters } from '@/components/property-filters';
 import HistoryModal from './modals/history-modal';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -17,16 +20,56 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-const ListProperties = ({ properties }: { properties: PaginatedData<Property> }) => {
+interface ListPropertiesProps {
+    properties: PaginatedData<Property>;
+    municipalities: Municipality[];
+    property_types: PropertyType[];
+    transaction_types: TransactionType[];
+    filters: Partial<Record<keyof PropertyFilterValues, string | string[]>>;
+}
+
+const toArray = (value?: string | string[]): (string | number)[] => {
+    if (!value) return [];
+    return Array.isArray(value) ? value : [value];
+};
+
+const ListProperties = ({ properties, municipalities, property_types, transaction_types, filters }: ListPropertiesProps) => {
 
     const [loading, setLoading] = useState(false);
     const [modalOpen, setModalOpen] = useState(false);
     const [selectedPropertyId, setSelectedPropertyId] = useState<number | null>(null);
+    const [form, setForm] = useState<PropertyFilterValues>({
+        ...EMPTY_PROPERTY_FILTERS,
+        q: (filters.q as string) ?? '',
+        municipality_id: toArray(filters.municipality_id),
+        property_type_id: toArray(filters.property_type_id),
+        transaction_type_id: toArray(filters.transaction_type_id),
+        price_min: (filters.price_min as string) ?? '',
+        price_max: (filters.price_max as string) ?? '',
+        area_min: (filters.area_min as string) ?? '',
+        area_max: (filters.area_max as string) ?? '',
+        date_from: (filters.date_from as string) ?? '',
+        date_to: (filters.date_to as string) ?? '',
+    });
+
+    const filterParams = (activeFilters: PropertyFilterValues) => ({
+        q: activeFilters.q || undefined,
+        municipality_id: activeFilters.municipality_id.length ? activeFilters.municipality_id : undefined,
+        property_type_id: activeFilters.property_type_id.length ? activeFilters.property_type_id : undefined,
+        transaction_type_id: activeFilters.transaction_type_id.length ? activeFilters.transaction_type_id : undefined,
+        price_min: activeFilters.price_min || undefined,
+        price_max: activeFilters.price_max || undefined,
+        area_min: activeFilters.area_min || undefined,
+        area_max: activeFilters.area_max || undefined,
+        date_from: activeFilters.date_from || undefined,
+        date_to: activeFilters.date_to || undefined,
+    });
 
     const handlePageChange = (url: string) => {
         setLoading(true);
         router.visit(url, {
             preserveState: true,
+            data: filterParams(form),
             onFinish: () => setLoading(false),
         });
     };
@@ -36,13 +79,33 @@ const ListProperties = ({ properties }: { properties: PaginatedData<Property> })
             preserveScroll: true,
         });
     };
-    
+
     const handleHistory = (propertyId: number) => {
         // router.get(route('properties.history', propertyId), {
         //     preserveScroll: true,
         // });
         setSelectedPropertyId(propertyId);
         setModalOpen(true);
+    };
+
+    const handleSearch = () => {
+        router.visit('/properties', {
+            method: 'get',
+            data: { page: 1, ...filterParams(form) },
+            preserveState: true,
+            onStart: () => setLoading(true),
+            onFinish: () => setLoading(false),
+        });
+    };
+
+    const handleClear = () => {
+        setForm(EMPTY_PROPERTY_FILTERS);
+        router.visit('/properties', {
+            method: 'get',
+            preserveState: true,
+            onStart: () => setLoading(true),
+            onFinish: () => setLoading(false),
+        });
     };
 
     const exportToExcel = () => {
@@ -79,7 +142,17 @@ const ListProperties = ({ properties }: { properties: PaginatedData<Property> })
                         </Button>
                     </div>
                 </CardHeader>
-                <CardContent className="space-y-">
+                <CardContent className="space-y-4">
+                    <PropertyFilters
+                        filters={form}
+                        onChange={setForm}
+                        onSearch={handleSearch}
+                        onClear={handleClear}
+                        municipalities={municipalities}
+                        property_types={property_types}
+                        transaction_types={transaction_types}
+                        loading={loading}
+                    />
                     <div className="overflow-x-auto">
                         <div className="min-w-[1000px]"> {/* Ancho mínimo para evitar wrap */}
                             <Table>

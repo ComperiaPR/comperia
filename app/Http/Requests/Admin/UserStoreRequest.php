@@ -28,13 +28,26 @@ class UserStoreRequest extends FormRequest
             'password_confirmation' => ['required'],
             'municipality_id' => ['required', 'integer', 'exists:municipalities,id'],
             'zip_code' => ['nullable', 'string'],
-            'account_type' => ['required', 'string'],
+            'account_type' => ['nullable', 'string', 'required_if:role,client'],
             'phone_number' => ['nullable', 'string'],
             'cell_number' => ['required', 'string'],
             'address_main' => ['required', 'string'],
             'address_secondary' => ['nullable', 'string'],
             'role' => ['required', 'string'],
+            'date_start' => ['nullable', 'date', 'required_if:role,client'],
+            'date_finish' => ['nullable', 'date', 'required_if:role,client'],
+            'plan_id' => ['nullable', 'integer', 'exists:plans,id', 'required_if:role,client'],
         ];
+    }
+
+    public function withValidator($validator): void
+    {
+        $validator->after(function ($validator) {
+            if ($this->filled('date_start') && $this->filled('date_finish')
+                && strtotime($this->date_start) >= strtotime($this->date_finish)) {
+                $validator->errors()->add('date_start', 'La fecha de inicio debe ser anterior a la fecha de fin.');
+            }
+        });
     }
 
     public function messages(): array
@@ -64,6 +77,10 @@ class UserStoreRequest extends FormRequest
             'address_main.required' => 'El campo dirección principal es obligatorio',
             'role.required' => 'El campo rol es obligatorio',
             'role.string' => 'El campo rol debe ser una cadena de texto',
+            'plan_id.required_if' => 'Debe seleccionar un plan para los usuarios con rol Cliente',
+            'plan_id.exists' => 'El plan seleccionado no es válido',
+            'date_start.required_if' => 'La fecha de inicio es obligatoria para los usuarios con rol Cliente',
+            'date_finish.required_if' => 'La fecha de fin es obligatoria para los usuarios con rol Cliente',
         ];
     }
 }

@@ -9,7 +9,9 @@ import { Toaster } from 'sonner';
 export default function AppSidebarLayout({ children, breadcrumbs = [] }: PropsWithChildren<{ breadcrumbs?: BreadcrumbItem[] }>) {
     return (
         <AppShell variant="sidebar">
-            <AppSidebar />
+            <div className="print:hidden">
+                <AppSidebar />
+            </div>
             <AppContent variant="sidebar" className="overflow-x-hidden">
                 <AppSidebarHeader breadcrumbs={breadcrumbs} />
                 {children}

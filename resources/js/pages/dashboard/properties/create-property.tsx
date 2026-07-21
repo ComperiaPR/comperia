@@ -325,6 +325,17 @@ const CreateProperty = (masterData: MasterDataProps) => {
                                 </div>
 
                                 <div className="space-y-2.5">
+                                    <Label className="text-sm font-medium text-slate-900">Escritura (PDF)</Label>
+                                    <Input
+                                        type="file"
+                                        accept="application/pdf"
+                                        onChange={(e) => handleChange('deed_pdf', e.target.files?.[0] ?? null)}
+                                        className="w-full border-slate-200 bg-white"
+                                    />
+                                    <InputError className="mt-1" message={clientErrors.deed_pdf || errors.deed_pdf} />
+                                </div>
+
+                                <div className="space-y-2.5">
                                     <Label htmlFor="sale_date">Sale Date</Label>
                                     <input
                                         type="date"

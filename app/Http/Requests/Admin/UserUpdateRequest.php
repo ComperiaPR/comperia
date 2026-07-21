@@ -31,17 +31,31 @@ class UserUpdateRequest extends FormRequest
                 'max:120',
                 'unique:users,email,' . $this->user->id,
             ],
-            'password' => ['string', 'confirmed', Password::defaults()],
-            'password_confirmation' => ['string'],
+            'password' => ['nullable', 'confirmed', Password::defaults()],
+            'password_confirmation' => ['nullable', 'string'],
             'municipality_id' => ['required', 'integer', 'exists:municipalities,id'],
             'zip_code' => ['nullable', 'string'],
-            'account_type' => ['required', 'string'],
+            'account_type' => ['nullable', 'string', 'required_if:role,client'],
             'phone_number' => ['nullable', 'string'],
             'cell_number' => ['required', 'string'],
             'address_main' => ['required', 'string'],
             'address_secondary' => ['nullable', 'string'],
             'role' => ['required', 'string'],
+            'date_start' => ['nullable', 'date'],
+            'date_finish' => ['nullable', 'date'],
+            'add_payment' => ['nullable', 'boolean'],
+            'plan_id' => ['nullable', 'integer', 'exists:plans,id', 'required_if:add_payment,1'],
         ];
+    }
+
+    public function withValidator($validator): void
+    {
+        $validator->after(function ($validator) {
+            if ($this->filled('date_start') && $this->filled('date_finish')
+                && strtotime($this->date_start) >= strtotime($this->date_finish)) {
+                $validator->errors()->add('date_start', 'La fecha de inicio debe ser anterior a la fecha de fin.');
+            }
+        });
     }
 
     public function messages(): array
@@ -71,6 +85,8 @@ class UserUpdateRequest extends FormRequest
             'address_main.required' => 'El campo dirección principal es obligatorio',
             'role.required' => 'El campo rol es obligatorio',
             'role.string' => 'El campo rol debe ser una cadena de texto',
+            'plan_id.required_if' => 'Debe seleccionar un plan para registrar el pago',
+            'plan_id.exists' => 'El plan seleccionado no es válido',
         ];
     }
 }

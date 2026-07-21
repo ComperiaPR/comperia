@@ -197,7 +197,7 @@ class PropertyMapRepository implements PropertyMapInterface
             $query->where('area_sqr_meter', '<=', (float)$validated['area_max']);
         }
 
-        $perPage = $validated['per_page'] ?? 1000;
+        $perPage = $validated['per_page'] ?? 10000;
         $properties = $query->limit($perPage)->get();
 
         return $properties->map(fn($property) => [
