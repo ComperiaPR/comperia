@@ -79,8 +79,8 @@ class UserStoreRequest extends FormRequest
             'role.string' => 'El campo rol debe ser una cadena de texto',
             'plan_id.required_if' => 'Debe seleccionar un plan para los usuarios con rol Cliente',
             'plan_id.exists' => 'El plan seleccionado no es válido',
-            'date_start.required_if' => 'La fecha de inicio es obligatoria para los usuarios con rol Cliente',
-            'date_finish.required_if' => 'La fecha de fin es obligatoria para los usuarios con rol Cliente',
+            //'date_start.required_if' => 'La fecha de inicio es obligatoria para los usuarios con rol Cliente',
+            //'date_finish.required_if' => 'La fecha de fin es obligatoria para los usuarios con rol Cliente',
         ];
     }
 }
