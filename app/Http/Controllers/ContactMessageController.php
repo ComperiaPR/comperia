@@ -25,7 +25,7 @@ class ContactMessageController extends Controller
             'user_id' => $request->user()?->id,
         ]);
 
-        Mail::to(config('services.contact.notify_email'))->send(new ContactMessageReceived($contactMessage));
+        // Mail::to(config('services.contact.notify_email'))->send(new ContactMessageReceived($contactMessage));
 
         return back()->with('success', 'Your message has been sent. We will get back to you soon.');
     }
@@ -46,7 +46,7 @@ class ContactMessageController extends Controller
             'user_id' => $user->id,
         ]);
 
-        Mail::to(config('services.contact.notify_email'))->send(new ContactMessageReceived($contactMessage));
+        // Mail::to(config('services.contact.notify_email'))->send(new ContactMessageReceived($contactMessage));
 
         return back()->with('success', 'Thanks! Your suggestion has been sent.');
     }
