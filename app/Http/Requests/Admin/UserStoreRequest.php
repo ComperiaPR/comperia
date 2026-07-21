@@ -34,8 +34,8 @@ class UserStoreRequest extends FormRequest
             'address_main' => ['required', 'string'],
             'address_secondary' => ['nullable', 'string'],
             'role' => ['required', 'string'],
-            'date_start' => ['nullable', 'date', 'required_if:role,client'],
-            'date_finish' => ['nullable', 'date', 'required_if:role,client'],
+            //'date_start' => ['nullable', 'date', 'required_if:role,client'],
+            //'date_finish' => ['nullable', 'date', 'required_if:role,client'],
             'plan_id' => ['nullable', 'integer', 'exists:plans,id', 'required_if:role,client'],
         ];
     }
