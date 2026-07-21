@@ -22,3 +22,4 @@ yarn-error.log
 /.nova
 /.vscode
 /.zed
+database/seeders/json/properties_data.jsondatabase/seeders/json/properties_data.json
