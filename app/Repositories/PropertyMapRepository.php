@@ -101,7 +101,7 @@ class PropertyMapRepository implements PropertyMapInterface
             ->select([
                 'id', 'street', 'unit_number', 'latitude', 'longitude', 
                 'municipality_id', 'property_type_id', 'transaction_type_id', 
-                'price', 'area_sqr_meter', 'created_at', 'daily'
+                'price', 'area_sqr_meter', 'created_at', 'daily', 'sale_date'
             ])
             ->with(['property_type:id,type'])
             ->where('public_web', true)
@@ -127,6 +127,7 @@ class PropertyMapRepository implements PropertyMapInterface
                 'area' => $property->area_sqr_meter,
                 'created_at' => $property->created_at ? $property->created_at->toDateString() : null,
                 'daily' => $property->daily,
+                'sale_date_year' => $property->sale_date ? $property->sale_date->year : null,
             ])
             ->toArray();
     }
@@ -158,8 +159,8 @@ class PropertyMapRepository implements PropertyMapInterface
             $query->where(function ($sub) use ($q) {
                 $sub->where('street', 'like', "%{$q}%")
                     ->orWhere('unit_number', 'like', "%{$q}%")
-                    ->orWhere('cadastral_number', 'like', "%{$q}%")
-                    ->orWhere('registry_number', 'like', "%{$q}%")
+                    ->orWhere('cadastre', 'like', "%{$q}%")
+                    // ->orWhere('registry_number', 'like', "%{$q}%")
                     ->orWhere('id', 'like', "%{$q}%");
             });
         }
@@ -214,6 +215,7 @@ class PropertyMapRepository implements PropertyMapInterface
             'area' => $property->area_sqr_meter,
             'created_at' => $property->created_at ? $property->created_at->toDateString() : null,
             'daily' => $property->daily,
+            'sale_date_year' => $property->sale_date ? $property->sale_date->year : null,
         ])->values()->toArray();
     }
 

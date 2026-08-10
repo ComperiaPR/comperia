@@ -20,8 +20,8 @@ class UserSeeder extends Seeder
             'is_active' => true,
             'municipality_id' => 1,
             'address_main' => 'User devs',
-            'email' => 'odespitia@gmail.com',
-            'username' => 'odespitia@gmail.com',
+            'email' => 'odespitia91@gmail.com',
+            'username' => 'odespitia91@gmail.com',
             'password' => bcrypt('Odem123*'),
         ]);
 

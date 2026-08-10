@@ -4,6 +4,7 @@ use App\Http\Controllers\PropertyController;
 use App\Http\Controllers\PropertyExportController;
 use App\Http\Controllers\ContactMessageController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Admin\AuthLogController;
 use App\Http\Controllers\Api\PropertyMapController;
 use App\Http\Controllers\Paypal\PayPalController;
 use Illuminate\Support\Facades\Route;
@@ -55,6 +56,7 @@ Route::middleware(['auth', 'verified', 'membership'])->group(function () {
     Route::prefix('contacts')->group(function () {
         Route::get('/', [ContactMessageController::class, 'index'])->name('contacts.index');
     });
+    Route::get('/auth-logs', [AuthLogController::class, 'index'])->name('auth-logs.index');
     // Map preview page (public)
     Route::get('/map/preview', function () {
         return Inertia::render('public/map-preview');

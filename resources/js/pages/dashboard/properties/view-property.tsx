@@ -98,7 +98,7 @@ const ViewProperty = (masterData: MasterDataProps) => {
                 <CardContent className="space-y-">
                     <div className="mx-auto w-full overflow-hidden rounded-md border border-blue-500">
                         <div className="w-full bg-blue-600 px-4 py-2 font-semibold text-white">
-                            [Property Number: { property.id}]
+                            Property Number: { property.id }
                         </div>
                         <div className="mx-2.5 my-2.5 grid grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-3">
                             <div>

@@ -27,10 +27,10 @@ export function Header() {
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
             <Link
-              href="#features"
+              href="/"
               className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
             >
-              Características
+              Home
             </Link>
             <Link
               href="#about"

@@ -34,7 +34,7 @@ export function HeroSection() {
             </Button>
           </div> */}
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 max-w-2xl mx-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 max-w-2xl mx-auto">
             <div className="flex flex-col items-center">
               <div className="bg-pr-blue/10 p-3 rounded-full mb-3">
                 <TrendingUp className="h-6 w-6 text-pr-blue" />
@@ -43,13 +43,13 @@ export function HeroSection() {
               <div className="text-sm text-muted-foreground">Propiedades registradas</div>
             </div>
 
-            <div className="flex flex-col items-center">
+            {/* <div className="flex flex-col items-center">
               <div className="bg-pr-green/10 p-3 rounded-full mb-3">
                 <Users className="h-6 w-6 text-pr-green" />
               </div>
               <div className="text-2xl font-bold text-foreground">10K+</div>
               <div className="text-sm text-muted-foreground">Usuarios activos</div>
-            </div>
+            </div> */}
 
             <div className="flex flex-col items-center">
               <div className="bg-pr-turquoise/10 p-3 rounded-full mb-3">

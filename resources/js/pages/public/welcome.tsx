@@ -24,7 +24,7 @@ export default function Welcome() {
                 <main>
                     <HeroSection />
                     <AboutSection />
-                    <FeaturesSection />
+                    {/* <FeaturesSection /> */}
                     {/* <StatsSection /> */}
                     {/* <PricingSection /> */}
                     {/* <TestimonialsSection /> */}

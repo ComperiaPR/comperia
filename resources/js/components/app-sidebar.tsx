@@ -2,7 +2,7 @@ import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { SharedData, type NavItem } from '@/types';
-import { Building, Info, LayoutGrid, List, Map, MessageSquare, Search, UserCog, UserSearch  } from 'lucide-react';
+import { Building, History, Info, LayoutGrid, List, Map, MessageSquare, Search, UserCog, UserSearch  } from 'lucide-react';
 import { Link, usePage } from '@inertiajs/react';
 import AppLogo from './app-logo';
 
@@ -67,6 +67,13 @@ const mainNavItems: NavItem[] = [
                 title: 'Contact',
                 href: '/contacts',
                 icon: MessageSquare,
+                roles: ['admin', 'super_user'],
+                _open: false,
+            },
+            {
+                title: 'Auth Logs',
+                href: '/auth-logs',
+                icon: History,
                 roles: ['admin', 'super_user'],
                 _open: false,
             },

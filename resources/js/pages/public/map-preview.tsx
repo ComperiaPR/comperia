@@ -13,6 +13,7 @@ interface ApiProperty {
   latitude: number;
   longitude: number;
   street?: string | null;
+  sale_date_year?: number | null;
   unit_number?: string | null;
   municipality_id?: number;
   property_type_id?: number;
@@ -175,7 +176,7 @@ export default function MapPreview() {
       
       const marker = new (window as any).google.maps.Marker({
         position: { lat: Number(firstProp.latitude), lng: Number(firstProp.longitude) },
-        title: isMultiple ? `${groupProps.length} propiedades` : (firstProp.street || `Propiedad ${firstProp.id}`),
+        title: isMultiple ? `${groupProps.length} propiedades` : (firstProp.sale_date_year + '' + firstProp.id),
         icon: {
           url: iconUrl,
           scaledSize: new (window as any).google.maps.Size(32, 32),
@@ -193,14 +194,14 @@ export default function MapPreview() {
         marker.addListener('click', () => {
           if (isMultiple) {
             const listItems = groupProps.map(p => {
-              const address = p.street ? `${p.street}${p.unit_number ? ' ' + p.unit_number : ''}` : `Propiedad ${p.id}`;
+              const tittle = p.sale_date_year ? `${p.sale_date_year}${p.id}` : `Propiedad ${p.id}`;
               const price = p.price ? `$${Number(p.price).toLocaleString()}` : 'N/A';
               return `
                 <div style="padding: 8px; border-bottom: 1px solid #e5e7eb; cursor: pointer; transition: background-color 0.2s;" 
                      onmouseover="this.style.backgroundColor='#f3f4f6'" 
                      onmouseout="this.style.backgroundColor='white'"
                      onclick="window.open('/properties/view/${p.id}', '_blank')">
-                  <div style="font-weight: 600; color: #1f2937; margin-bottom: 2px;">${address}</div>
+                  <div style="font-weight: 600; color: #1f2937; margin-bottom: 2px;">${tittle}</div>
                   <div style="font-size: 12px; color: #6b7280;">ID: ${p.id} • Precio: ${price}</div>
                   ${p.area ? `<div style="font-size: 12px; color: #6b7280;">Área: ${p.area} m²</div>` : ''}
                 </div>
@@ -320,11 +321,12 @@ export default function MapPreview() {
         latitude: p.latitude,
         longitude: p.longitude,
         street: p.street,
+        sale_date_year: p.sale_date_year,
         unit_number: p.unit_number,
         municipality_id: p.municipality_id || p.municipality?.id || null,
         property_type_id: p.property_type_id || p.property_type?.id || null,
         property_type_type: p.property_type_type || p.property_type?.type || null,
-        transaction_type_id: p.property_status_id || null,
+        transaction_type_id: p.transaction_type_id || null,
         price: p.price ?? p.price_sqr_meter ?? null,
         area: p.area ?? p.area_sqr_feet ?? null,
         created_at: p.created_at || p.updated_at || null,
